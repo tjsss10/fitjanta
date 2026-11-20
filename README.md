@@ -16,6 +16,8 @@
 
 # 🏃 FitJanta — Move. Eat. Share.
 
+> 💼 Built during my **internship at HCLTech**.
+
 A social fitness web app: log workouts and meals, let the **Food AI** work out the nutrition,
 earn XP, take on challenges, claim territory on a live map and climb the leaderboard with friends.
 Works on any phone and can be installed to the home screen.
