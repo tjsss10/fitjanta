@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Live map · FitJanta</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet">
+    <link href="css/fitjanta.css" rel="stylesheet">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="FitJanta">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0A0D12">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="icon" href="img/logo-mark.svg" type="image/svg+xml">
+    <link rel="manifest" href="manifest.webmanifest">
+</head>
+<body>
+
+<main class="app-shell">
+
+    <header class="app-topbar mb-0">
+        <a href="home.html" class="icon-btn" aria-label="Back"><i class="bi bi-chevron-left"></i></a>
+        <div class="flex-grow-1">
+            <h1 class="title mb-0">Live map</h1>
+            <div class="small text-muted" id="subTitle">Athletes &amp; territories near you</div>
+        </div>
+        <button class="icon-btn" id="refreshBtn" aria-label="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
+    </header>
+
+    <!-- Map -->
+    <section class="map-wrap reveal d1">
+        <div id="liveMap"></div>
+
+        <div class="map-overlay-top" id="filters">
+            <button class="chip active" data-filter="all"><i class="bi bi-layers"></i>All</button>
+            <button class="chip" data-filter="athletes"><i class="bi bi-people"></i>Athletes</button>
+            <button class="chip" data-filter="territories"><i class="bi bi-hexagon"></i>Zones</button>
+            <button class="chip" data-filter="mine"><i class="bi bi-flag"></i>Mine</button>
+        </div>
+
+        <div class="map-fabs">
+            <button class="icon-btn" id="locateBtn" title="Use my GPS location"><i class="bi bi-crosshair"></i></button>
+            <button class="icon-btn" id="pickBtn" title="Set my location on the map"><i class="bi bi-pin-map"></i></button>
+            <button class="icon-btn" id="fitBtn" title="Show everyone"><i class="bi bi-arrows-fullscreen"></i></button>
+        </div>
+
+        <div class="pick-banner d-none" id="pickBanner">
+            <i class="bi bi-hand-index-thumb me-1"></i> Tap the map where you are
+            <button class="btn btn-sm text-white float-end p-0" id="cancelPick" aria-label="Cancel"><i class="bi bi-x-lg"></i></button>
+        </div>
+    </section>
+
+    <!-- My status -->
+    <section class="fj-card mt-3 reveal d2">
+        <div class="d-flex align-items-center gap-3">
+            <span id="myAvatar"></span>
+            <div class="flex-grow-1 min-w-0">
+                <div class="fw-800">You on the map</div>
+                <div class="small text-muted" id="myLocText">Loading…</div>
+            </div>
+            <div class="form-check form-switch m-0" title="Show me to other athletes">
+                <input class="form-check-input" type="checkbox" role="switch" id="shareSwitch">
+            </div>
+        </div>
+        <div class="stat-grid three mt-3">
+            <div class="text-center"><div class="fs-4 fw-800" id="sAthletes">0</div><div class="small text-muted">Athletes</div></div>
+            <div class="text-center"><div class="fs-4 fw-800" id="sZones">0</div><div class="small text-muted">Territories</div></div>
+            <div class="text-center"><div class="fs-4 fw-800 text-grad"><span id="sMine">0</span>/5</div><div class="small text-muted">Yours</div></div>
+        </div>
+        <button class="btn btn-grad w-100 py-3 mt-3" id="claimBtn">
+            <i class="bi bi-flag-fill me-1"></i> Claim territory here <span class="small fw-semibold" style="opacity:.85">(+25 XP)</span>
+        </button>
+        <div class="small text-muted text-center mt-2" id="claimHint"></div>
+    </section>
+
+    <!-- Lists -->
+    <ul class="nav nav-pills nav-fill mt-4 p-1 rounded-4" style="background:var(--fj-surface)" role="tablist">
+        <li class="nav-item"><button class="nav-link active rounded-4 fw-bold" data-bs-toggle="pill" data-bs-target="#tabAthletes"><i class="bi bi-people me-1"></i>Nearby athletes</button></li>
+        <li class="nav-item"><button class="nav-link rounded-4 fw-bold" data-bs-toggle="pill" data-bs-target="#tabZones"><i class="bi bi-hexagon me-1"></i>Territories</button></li>
+    </ul>
+    <div class="tab-content mt-3">
+        <div class="tab-pane fade show active" id="tabAthletes"><div class="skeleton" style="height:70px"></div></div>
+        <div class="tab-pane fade" id="tabZones"></div>
+    </div>
+</main>
+
+<!-- Claim modal -->
+<div class="modal fade" id="claimModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background:var(--fj-bg-2);border:1px solid var(--fj-border-strong);border-radius:24px">
+            <div class="modal-body p-4">
+                <div class="text-center mb-3">
+                    <span class="stat-icon tint-orange rounded-4 d-inline-flex align-items-center justify-content-center" style="width:64px;height:64px;font-size:1.8rem"><i class="bi bi-flag-fill"></i></span>
+                    <h5 class="fw-800 mt-3 mb-1">Claim this territory</h5>
+                    <div class="small text-muted">Radius <b class="text-white" id="claimRadius">0.6 km</b> around your location. Bigger at higher levels.</div>
+                </div>
+                <div class="form-floating mb-3">
+                    <input class="form-control" id="zoneName" maxlength="40" placeholder="Name">
+                    <label for="zoneName">Territory name (optional)</label>
+                </div>
+                <button class="btn btn-grad w-100 py-3" id="confirmClaim"><i class="bi bi-check2-circle me-1"></i>Claim it</button>
+                <button class="btn btn-ghost w-100 py-2 mt-2" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/fitjanta.js"></script>
+<script>
+    let me = FJ.requireUser();
+    FJ.nav("");
+    const $ = id => document.getElementById(id);
+    $("myAvatar").innerHTML = FJ.avatarOf(me, 44, true);
+
+    // OpenStreetMap tiles (free, no API key), styled dark with CSS in fitjanta.css
+    const map = L.map("liveMap", { zoomControl: false, attributionControl: true }).setView([18.5204, 73.8567], 12);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19
+    }).addTo(map);
+    L.control.zoom({ position: "bottomleft" }).addTo(map);
+
+    const athleteLayer = L.layerGroup().addTo(map);
+    const zoneLayer = L.layerGroup().addTo(map);
+    const mineLayer = L.layerGroup().addTo(map);
+
+    let data = null;
+    let filter = "all";
+    let picking = false;
+    let firstFit = true;
+
+    function athleteIcon(a) {
+        const size = a.me ? 46 : 40;
+        return L.divIcon({
+            className: "",
+            iconSize: [size + 6, size + 6],
+            iconAnchor: [(size + 6) / 2, (size + 6) / 2],
+            popupAnchor: [0, -size / 2],
+            html: `<div class="athlete-pin ${a.me ? "me" : ""} ${a.approximate ? "approx" : ""}">
+                     <span class="pin-ring">${FJ.avatarOf(a, size)}</span>
+                     <span class="pin-lvl">${a.me ? "YOU" : "Lv " + a.level}</span>
+                   </div>`
+        });
+    }
+
+    function athletePopup(a) {
+        return `<div class="d-flex align-items-center gap-2 mb-2">${FJ.avatarOf(a, 40)}
+                <div><div class="fw-800">${FJ.esc(a.name)}${a.me ? " (you)" : ""}</div>
+                <div class="small text-muted">Lv ${a.level} · ${FJ.fmt(a.xp)} XP · <i class="bi bi-fire text-orange"></i>${a.streak}</div></div></div>
+                <div class="small mb-2">${a.approximate ? `<i class="bi bi-geo"></i> Around ${FJ.esc(a.city || "their city")} (approx.)`
+                    : `<i class="bi bi-geo-alt-fill text-orange"></i> Shared ${FJ.timeAgo(a.locationUpdatedAt)}`}
+                ${a.distanceKm != null ? ` · ${FJ.fmtDistance(a.distanceKm)} away` : ""}</div>
+                <a href="${FJ.profileHref(a.id)}" class="btn btn-sm btn-grad w-100">View profile</a>`;
+    }
+
+    function zonePopup(t) {
+        return `<div class="small-caps" style="color:${FJ.colorFor(t.ownerId)}">${t.mine ? "Your territory" : "Territory"}</div>
+                <div class="fw-800 fs-6">${FJ.esc(t.name)}</div>
+                <div class="small text-muted mb-2">${t.radius} km radius · +${t.xp} XP${t.distanceKm != null ? " · " + FJ.fmtDistance(t.distanceKm) + " away" : ""}</div>
+                <div class="d-flex align-items-center gap-2 mb-2">${FJ.avatar(t.ownerName, 28, false, t.ownerAvatar)}
+                <span class="small">Owned by <b>${FJ.esc(t.ownerName)}</b></span></div>
+                ${t.ownerId ? `<a href="${FJ.profileHref(t.ownerId)}" class="btn btn-sm btn-ghost w-100">Owner profile</a>` : ""}`;
+    }
+
+    function draw() {
+        athleteLayer.clearLayers();
+        zoneLayer.clearLayers();
+        mineLayer.clearLayers();
+        if (!data) return;
+
+        data.territories.forEach(t => {
+            const color = t.mine ? "#FF5A3C" : FJ.colorFor(t.ownerId);
+            const circle = L.circle([t.latitude, t.longitude], {
+                radius: t.radius * 1000, color, weight: t.mine ? 3 : 2,
+                fillColor: color, fillOpacity: t.mine ? .22 : .12, dashArray: t.mine ? null : "6 6"
+            }).bindPopup(zonePopup(t));
+            const flag = L.marker([t.latitude, t.longitude], {
+                icon: L.divIcon({ className: "", iconSize: [28, 28], iconAnchor: [14, 28],
+                    html: `<i class="bi bi-flag-fill" style="font-size:24px;color:${color};filter:drop-shadow(0 2px 4px rgba(0,0,0,.7))"></i>` })
+            }).bindPopup(zonePopup(t));
+            (t.mine ? mineLayer : zoneLayer).addLayer(circle).addLayer(flag);
+        });
+
+        data.athletes.forEach(a => {
+            const m = L.marker([a.latitude, a.longitude], { icon: athleteIcon(a), zIndexOffset: a.me ? 1000 : 0 }).bindPopup(athletePopup(a));
+            athleteLayer.addLayer(m);
+        });
+
+        applyFilter();
+    }
+
+    function applyFilter() {
+        const show = (layer, on) => on ? map.addLayer(layer) : map.removeLayer(layer);
+        show(athleteLayer, filter === "all" || filter === "athletes");
+        show(zoneLayer, filter === "all" || filter === "territories");
+        show(mineLayer, filter !== "athletes");
+        document.querySelectorAll("#filters .chip").forEach(c => c.classList.toggle("active", c.dataset.filter === filter));
+    }
+
+    function fitAll() {
+        const pts = [];
+        data.athletes.forEach(a => pts.push([a.latitude, a.longitude]));
+        data.territories.forEach(t => pts.push([t.latitude, t.longitude]));
+        if (pts.length === 1) map.setView(pts[0], 14);
+        else if (pts.length) map.fitBounds(pts, { padding: [50, 50], maxZoom: 14 });
+    }
+
+    // Open on you and whatever is within 30 km (the ⤢ button shows everyone)
+    function fitNearby() {
+        const meA = data.athletes.find(a => a.me);
+        if (!meA) { fitAll(); return; }
+        const pts = [[meA.latitude, meA.longitude]];
+        data.athletes.forEach(a => { if (!a.me && a.distanceKm != null && a.distanceKm <= 30) pts.push([a.latitude, a.longitude]); });
+        data.territories.forEach(t => { if (t.distanceKm != null && t.distanceKm <= 30) pts.push([t.latitude, t.longitude]); });
+        if (pts.length === 1) map.setView(pts[0], 13);
+        else map.fitBounds(pts, { padding: [50, 50], maxZoom: 15 });
+    }
+
+    function renderPanels() {
+        const mine = data.athletes.find(a => a.me);
+        const info = data.me || {};
+        $("sAthletes").textContent = data.athletes.length;
+        $("sZones").textContent = data.territories.length;
+        $("sMine").textContent = info.territoriesOwned || 0;
+        $("shareSwitch").checked = !!info.shareLocation;
+        $("claimRadius").textContent = (info.claimRadiusKm || 0.6) + " km";
+
+        if (info.hasExactLocation) {
+            $("myLocText").innerHTML = `<i class="bi bi-geo-alt-fill text-orange"></i> Location shared ${FJ.timeAgo(mine && mine.locationUpdatedAt)} · ${info.shareLocation ? "visible to others" : "hidden from others"}`;
+            $("claimHint").textContent = `Claim radius at level ${info.level}: ${info.claimRadiusKm} km`;
+            $("claimBtn").disabled = (info.territoriesOwned || 0) >= 5;
+        } else {
+            $("myLocText").innerHTML = mine
+                ? `<i class="bi bi-geo"></i> Showing approx. ${FJ.esc(me.city || "")}. Set your exact spot with <i class="bi bi-crosshair"></i> or <i class="bi bi-pin-map"></i>`
+                : `Set your location with <i class="bi bi-crosshair"></i> GPS or <i class="bi bi-pin-map"></i> tap on the map`;
+            $("claimHint").textContent = "Set your exact location first to claim a territory.";
+            $("claimBtn").disabled = true;
+        }
+
+        const others = data.athletes.filter(a => !a.me);
+        $("tabAthletes").innerHTML = others.length ? others.map(a => `
+            <a href="${FJ.profileHref(a.id)}" class="list-tile pressable">
+                ${FJ.avatarOf(a, 46, true)}
+                <span class="lt-body"><span class="lt-title d-block">${FJ.esc(a.name)}</span>
+                <span class="lt-sub">Lv ${a.level} · ${FJ.fmt(a.xp)} XP · <i class="bi bi-fire text-orange"></i>${a.streak}${a.approximate ? ' · <span class="text-faint">approx.</span>' : ""}</span></span>
+                <span class="lt-end">${a.distanceKm != null ? FJ.fmtDistance(a.distanceKm) : `<i class="bi bi-geo text-muted"></i>`}
+                <span class="d-block small text-muted fw-semibold">${FJ.esc(a.city || "")}</span></span>
+            </a>`).join("") : `<div class="fj-card flat empty-state"><i class="bi bi-people"></i><div class="fw-bold text-white">No other athletes on the map yet</div><div class="small">Invite friends to FitJanta!</div></div>`;
+
+        $("tabZones").innerHTML = data.territories.length ? data.territories.map(t => `
+            <div class="list-tile" data-zone="${t.id}" style="cursor:pointer">
+                <span class="lt-icon" style="background:${FJ.colorFor(t.ownerId)}22;color:${t.mine ? "#FF5A3C" : FJ.colorFor(t.ownerId)}"><i class="bi bi-flag-fill"></i></span>
+                <span class="lt-body"><span class="lt-title d-block">${FJ.esc(t.name)} ${t.mine ? '<span class="badge rounded-pill tint-orange">Yours</span>' : ""}</span>
+                <span class="lt-sub">${FJ.esc(t.ownerName)} · ${t.radius} km${t.distanceKm != null ? " · " + FJ.fmtDistance(t.distanceKm) : ""}</span></span>
+                ${t.mine ? `<button class="btn btn-sm btn-ghost text-pink" data-release="${t.id}" aria-label="Release"><i class="bi bi-x-circle"></i></button>` : `<i class="bi bi-chevron-right text-muted"></i>`}
+            </div>`).join("") : `<div class="fj-card flat empty-state"><i class="bi bi-hexagon"></i><div class="fw-bold text-white">No territories yet</div><div class="small">Be the first to claim one!</div></div>`;
+    }
+
+    async function load() {
+        try {
+            data = await FJ.api(`/api/map/${me.id}`);
+            draw();
+            renderPanels();
+            if (firstFit) { fitNearby(); firstFit = false; }
+        } catch (e) {
+            FJ.toast(e.message, "error");
+        }
+    }
+
+    async function saveLocation(lat, lng) {
+        try {
+            me = await FJ.api(`/api/users/${me.id}/location`, { method: "PUT", body: { latitude: lat, longitude: lng } });
+            FJ.setUser(me);
+            FJ.toast("Location updated", "success");
+            await load();
+            map.setView([lat, lng], 15);
+        } catch (e) { FJ.toast(e.message, "error"); }
+    }
+
+    // GPS (needs HTTPS or localhost in browsers; falls back to tap-to-set)
+    $("locateBtn").addEventListener("click", () => {
+        if (!window.isSecureContext || !navigator.geolocation) {
+            FJ.toast("GPS needs a secure (https) connection on phones. Tap the map to set your spot instead.", "info");
+            startPick();
+            return;
+        }
+        FJ.toast("Finding you…", "info");
+        navigator.geolocation.getCurrentPosition(
+            p => saveLocation(p.coords.latitude, p.coords.longitude),
+            () => { FJ.toast("Couldn't get GPS. Tap the map to set your location.", "error"); startPick(); },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+    });
+
+    function startPick() {
+        picking = true;
+        $("pickBanner").classList.remove("d-none");
+        map.getContainer().style.cursor = "crosshair";
+    }
+    function stopPick() {
+        picking = false;
+        $("pickBanner").classList.add("d-none");
+        map.getContainer().style.cursor = "";
+    }
+    $("pickBtn").addEventListener("click", startPick);
+    $("cancelPick").addEventListener("click", e => { e.stopPropagation(); stopPick(); });
+    map.on("click", e => {
+        if (!picking) return;
+        stopPick();
+        saveLocation(e.latlng.lat, e.latlng.lng);
+    });
+
+    $("fitBtn").addEventListener("click", () => data && fitAll());
+    $("refreshBtn").addEventListener("click", () => { FJ.haptic(); load(); });
+
+    $("filters").addEventListener("click", e => {
+        const b = e.target.closest("[data-filter]");
+        if (!b) return;
+        filter = b.dataset.filter;
+        applyFilter();
+    });
+
+    $("shareSwitch").addEventListener("change", async e => {
+        try {
+            me = await FJ.api(`/api/users/${me.id}/location`, { method: "PUT", body: { share: e.target.checked } });
+            FJ.setUser(me);
+            FJ.toast(e.target.checked ? "Other athletes can see you on the map" : "You're hidden from other athletes", "success");
+            load();
+        } catch (err) { FJ.toast(err.message, "error"); }
+    });
+
+    const claimModal = new bootstrap.Modal($("claimModal"));
+    $("claimBtn").addEventListener("click", () => { $("zoneName").value = ""; claimModal.show(); });
+    $("confirmClaim").addEventListener("click", async () => {
+        const btn = $("confirmClaim");
+        FJ.setLoading(btn, true, "Claiming");
+        try {
+            const r = await FJ.api("/api/territories/claim", { method: "POST", body: { userId: me.id, name: $("zoneName").value } });
+            FJ.setUser(r.user);
+            claimModal.hide();
+            FJ.celebrate(`+${r.xpEarned} XP`, `${r.territory.name} is yours! 🚩`);
+            await load();
+            map.setView([r.territory.latitude, r.territory.longitude], 14);
+        } catch (e) {
+            FJ.toast(e.message, "error");
+        } finally {
+            FJ.setLoading(btn, false);
+        }
+    });
+
+    $("tabZones").addEventListener("click", async e => {
+        const rel = e.target.closest("[data-release]");
+        if (rel) {
+            e.stopPropagation();
+            if (!confirm("Release this territory? Someone else could claim it.")) return;
+            try {
+                await FJ.api(`/api/territories/${rel.dataset.release}?userId=${me.id}`, { method: "DELETE" });
+                FJ.toast("Territory released", "success");
+                load();
+            } catch (err) { FJ.toast(err.message, "error"); }
+            return;
+        }
+        const row = e.target.closest("[data-zone]");
+        if (row) {
+            const t = data.territories.find(z => z.id === Number(row.dataset.zone));
+            if (t) { window.scrollTo({ top: 0, behavior: "smooth" }); map.setView([t.latitude, t.longitude], 14); }
+        }
+    });
+
+    load();
+    // Keep the map live: refresh every 30 seconds
+    setInterval(() => { if (!picking && document.visibilityState === "visible") load(); }, 30000);
+</script>
+</body>
+</html>

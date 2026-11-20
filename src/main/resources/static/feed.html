@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Feed · FitJanta</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="css/fitjanta.css" rel="stylesheet">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="FitJanta">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0A0D12">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="icon" href="img/logo-mark.svg" type="image/svg+xml">
+    <link rel="manifest" href="manifest.webmanifest">
+</head>
+<body>
+
+<main class="app-shell">
+
+    <header class="app-topbar">
+        <a class="brand" href="home.html">
+            <img src="img/logo-mark.svg" alt="">
+            <span class="wordmark">FIT<span>JANTA</span></span>
+        </a>
+        <span class="flex-grow-1"></span>
+        <button class="icon-btn" id="refreshBtn" aria-label="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
+        <a href="new-post.html" class="icon-btn" aria-label="New post"><i class="bi bi-plus-square"></i></a>
+    </header>
+
+    <!-- Share prompt -->
+    <a href="new-post.html" class="fj-card tight d-flex align-items-center gap-3 text-decoration-none text-white mb-3 pressable reveal d1">
+        <span id="meAvatar"></span>
+        <span class="flex-grow-1 text-muted">Share today's workout or meal…</span>
+        <span class="icon-btn" style="background:var(--fj-grad);border:0"><i class="bi bi-camera-fill"></i></span>
+    </a>
+
+    <section id="feed">
+        <div class="skeleton mb-3" style="height:480px"></div>
+        <div class="skeleton" style="height:480px"></div>
+    </section>
+
+</main>
+
+<!-- Comments bottom sheet -->
+<div class="offcanvas offcanvas-bottom sheet" tabindex="-1" id="commentSheet" aria-labelledby="commentTitle">
+    <div class="sheet-handle"></div>
+    <div class="offcanvas-header py-2">
+        <h5 class="offcanvas-title fw-800 w-100 text-center" id="commentTitle">Comments</h5>
+        <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body pt-0" id="commentList"></div>
+    <form class="comment-composer" id="commentForm" autocomplete="off">
+        <span id="composerAvatar"></span>
+        <input class="form-control" id="commentInput" maxlength="500" placeholder="Add a comment…" enterkeyhint="send">
+        <button class="btn btn-grad send" id="sendBtn" type="submit" aria-label="Post comment" disabled><i class="bi bi-send-fill"></i></button>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/fitjanta.js"></script>
+<script>
+    const me = FJ.requireUser();
+    FJ.nav("feed");
+    const $ = id => document.getElementById(id);
+    $("meAvatar").innerHTML = FJ.avatarOf(me, 40);
+    $("composerAvatar").innerHTML = FJ.avatarOf(me, 34);
+
+    let posts = [];
+    let openPostId = null;
+    const sheet = new bootstrap.Offcanvas($("commentSheet"));
+
+    function commentLine(c) {
+        return `<div class="c-line"><a class="user-link fw-bold me-1" href="${FJ.profileHref(c.userId)}">${FJ.esc(c.userName.split(" ")[0])}</a>${FJ.formatCaption(c.text)}</div>`;
+    }
+
+    function commentsPreview(p) {
+        if (!p.commentCount) {
+            return `<div class="add-comment-inline" data-comments="${p.id}">${FJ.avatarOf(me, 26)}<span>Add a comment…</span></div>`;
+        }
+        return `<div class="post-comments">
+            ${p.commentCount > 2 ? `<button class="more mb-1 p-0 border-0 bg-transparent text-muted fw-semibold" data-comments="${p.id}">View all ${p.commentCount} comments</button>` : ""}
+            ${p.latestComments.map(commentLine).join("")}
+            <div class="add-comment-inline px-0 pb-0 pt-1" data-comments="${p.id}">${FJ.avatarOf(me, 24)}<span>Add a comment…</span></div>
+        </div>`;
+    }
+
+    function postCard(p, i) {
+        const mine = p.userId === me.id;
+        const long = (p.caption || "").length > 140 || (p.caption || "").split("\n").length > 3;
+        const href = FJ.profileHref(p.userId);
+        return `
+        <article class="post-card reveal d${Math.min(i + 1, 6)}" id="post-${p.id}">
+            <div class="post-head">
+                <a href="${href}">${FJ.avatar(p.userName, 40, true, p.userAvatar)}</a>
+                <div class="flex-grow-1 min-w-0">
+                    <div class="name"><a class="user-link" href="${href}">${FJ.esc(p.userName)}</a> <span class="badge rounded-pill tint-orange ms-1" style="font-size:.62rem">Lv ${p.userLevel}</span></div>
+                    <div class="meta">${p.userCity ? `<i class="bi bi-geo-alt"></i> ${FJ.esc(p.userCity)} · ` : ""}${FJ.timeAgo(p.createdAt)}</div>
+                </div>
+                ${mine ? `<div class="dropdown">
+                    <button class="icon-btn" style="width:36px;height:36px;background:transparent;border:0" data-bs-toggle="dropdown" aria-label="Post options"><i class="bi bi-three-dots"></i></button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><button class="dropdown-item text-danger" data-delete="${p.id}"><i class="bi bi-trash3 me-2"></i>Delete post</button></li>
+                    </ul></div>` : ""}
+            </div>
+            <div class="post-media" data-comments-dbl="${p.id}">
+                <img src="${FJ.esc(p.imageUrl)}" alt="Post by ${FJ.esc(p.userName)}" loading="lazy" onload="this.classList.add('loaded')">
+            </div>
+            <div class="post-actions">
+                <button class="pa-btn" data-comments="${p.id}" aria-label="Comments"><i class="bi bi-chat"></i><span class="cc">${p.commentCount || ""}</span></button>
+                <a class="pa-btn ms-auto text-decoration-none" href="${href}" aria-label="View profile"><i class="bi bi-person-circle"></i></a>
+            </div>
+            ${p.caption ? `<div class="post-body pt-1">
+                <div class="caption ${long ? "clamp" : ""}"><a class="user-link fw-bold me-1" href="${href}">${FJ.esc(p.userName.split(" ")[0])}</a>${FJ.formatCaption(p.caption)}</div>
+                ${long ? `<button class="more mt-1" data-more>more</button>` : ""}
+            </div>` : `<div class="pb-1"></div>`}
+            <div class="comments-slot">${commentsPreview(p)}</div>
+        </article>`;
+    }
+
+    async function load() {
+        try {
+            posts = await FJ.api("/api/posts");
+            const feed = $("feed");
+            if (!posts.length) {
+                feed.innerHTML = `<div class="fj-card empty-state">
+                    <i class="bi bi-images"></i>
+                    <div class="fw-bold text-white fs-5">No posts yet</div>
+                    <div class="small mb-3">Be the first to inspire the FitJanta crew.</div>
+                    <a href="new-post.html" class="btn btn-grad px-4"><i class="bi bi-camera-fill me-1"></i> Create first post</a></div>`;
+                return;
+            }
+            feed.innerHTML = posts.map(postCard).join("");
+            if (location.hash) {
+                const target = document.querySelector(location.hash);
+                if (target) setTimeout(() => target.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
+            }
+        } catch (e) {
+            $("feed").innerHTML = `<div class="alert alert-danger">${FJ.esc(e.message)}</div>`;
+        }
+    }
+
+    // ---------------- Comments sheet ----------------
+
+    function commentRow(c, postOwnerId) {
+        const canDelete = c.userId === me.id || postOwnerId === me.id;
+        return `<div class="comment-row" id="c-${c.id}">
+            <a href="${FJ.profileHref(c.userId)}">${FJ.avatar(c.userName, 36, false, c.userAvatar)}</a>
+            <div class="c-body">
+                <a class="user-link c-name" href="${FJ.profileHref(c.userId)}">${FJ.esc(c.userName)}</a>
+                <div class="c-text">${FJ.formatCaption(c.text)}</div>
+                <div class="c-meta">${FJ.timeAgo(c.createdAt)}${canDelete ? ` · <button class="btn btn-link p-0 text-muted" style="font-size:.72rem" data-del-comment="${c.id}">Delete</button>` : ""}</div>
+            </div>
+        </div>`;
+    }
+
+    async function openComments(postId) {
+        openPostId = postId;
+        const post = posts.find(p => p.id === postId);
+        $("commentTitle").textContent = "Comments";
+        $("commentList").innerHTML = `<div class="text-center py-4"><span class="ai-thinking"><span></span><span></span><span></span></span></div>`;
+        sheet.show();
+        try {
+            const list = await FJ.api(`/api/posts/${postId}/comments`);
+            renderComments(list, post);
+        } catch (e) {
+            $("commentList").innerHTML = `<div class="alert alert-danger small">${FJ.esc(e.message)}</div>`;
+        }
+    }
+
+    function renderComments(list, post) {
+        $("commentTitle").textContent = list.length ? `${list.length} comment${list.length > 1 ? "s" : ""}` : "Comments";
+        const captionRow = post && post.caption ? `<div class="comment-row border-bottom pb-3 mb-1" style="border-color:var(--fj-border)!important">
+                ${FJ.avatar(post.userName, 36, false, post.userAvatar)}
+                <div class="c-body"><span class="c-name">${FJ.esc(post.userName)}</span><div class="c-text">${FJ.formatCaption(post.caption)}</div>
+                <div class="c-meta">${FJ.timeAgo(post.createdAt)}</div></div></div>` : "";
+        $("commentList").innerHTML = captionRow + (list.length
+            ? list.map(c => commentRow(c, post && post.userId)).join("")
+            : `<div class="empty-state"><i class="bi bi-chat-heart"></i><div class="fw-bold text-white">No comments yet</div><div class="small">Start the conversation 💬</div></div>`);
+        $("commentList").scrollTop = $("commentList").scrollHeight;
+    }
+
+    function updatePostComments(postId, count, newComment) {
+        const post = posts.find(p => p.id === postId);
+        if (!post) return;
+        post.commentCount = count;
+        if (newComment) post.latestComments = [...post.latestComments, newComment].slice(-2);
+        const card = $("post-" + postId);
+        if (card) {
+            card.querySelector(".cc").textContent = count || "";
+            card.querySelector(".comments-slot").innerHTML = commentsPreview(post);
+        }
+    }
+
+    $("commentInput").addEventListener("input", () => $("sendBtn").disabled = !$("commentInput").value.trim());
+
+    $("commentForm").addEventListener("submit", async e => {
+        e.preventDefault();
+        const text = $("commentInput").value.trim();
+        if (!text || !openPostId) return;
+        const btn = $("sendBtn");
+        btn.disabled = true;
+        try {
+            const r = await FJ.api(`/api/posts/${openPostId}/comments`, { method: "POST", body: { userId: me.id, text } });
+            $("commentInput").value = "";
+            FJ.haptic();
+            const list = await FJ.api(`/api/posts/${openPostId}/comments`);
+            renderComments(list, posts.find(p => p.id === openPostId));
+            updatePostComments(openPostId, r.commentCount, r.comment);
+        } catch (err) {
+            FJ.toast(err.message, "error");
+        } finally {
+            btn.disabled = !$("commentInput").value.trim();
+        }
+    });
+
+    $("commentList").addEventListener("click", async e => {
+        const b = e.target.closest("[data-del-comment]");
+        if (!b || !confirm("Delete this comment?")) return;
+        try {
+            const r = await FJ.api(`/api/posts/comments/${b.dataset.delComment}?userId=${me.id}`, { method: "DELETE" });
+            const list = await FJ.api(`/api/posts/${openPostId}/comments`);
+            renderComments(list, posts.find(p => p.id === openPostId));
+            const post = posts.find(p => p.id === openPostId);
+            if (post) post.latestComments = list.slice(-2);
+            updatePostComments(openPostId, r.commentCount);
+        } catch (err) { FJ.toast(err.message, "error"); }
+    });
+
+    $("commentSheet").addEventListener("shown.bs.offcanvas", () => $("commentInput").focus());
+
+    // ---------------- Feed interactions ----------------
+
+    $("feed").addEventListener("click", async e => {
+        const c = e.target.closest("[data-comments]");
+        if (c) { openComments(Number(c.dataset.comments)); return; }
+
+        const more = e.target.closest("[data-more]");
+        if (more) {
+            more.previousElementSibling.classList.remove("clamp");
+            more.remove();
+            return;
+        }
+        const del = e.target.closest("[data-delete]");
+        if (del) {
+            if (!confirm("Delete this post? This can't be undone.")) return;
+            try {
+                await FJ.api(`/api/posts/${del.dataset.delete}?userId=${me.id}`, { method: "DELETE" });
+                document.getElementById("post-" + del.dataset.delete)?.remove();
+                FJ.toast("Post deleted", "success");
+            } catch (err) {
+                FJ.toast(err.message, "error");
+            }
+        }
+    });
+
+    // Double-tap a photo to open its comments
+    $("feed").addEventListener("dblclick", e => {
+        const m = e.target.closest("[data-comments-dbl]");
+        if (m) openComments(Number(m.dataset.commentsDbl));
+    });
+
+    $("refreshBtn").addEventListener("click", () => { FJ.haptic(); load(); });
+    load();
+</script>
+</body>
+</html>

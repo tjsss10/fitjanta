@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Home · FitJanta</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="css/fitjanta.css" rel="stylesheet">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="FitJanta">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0A0D12">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="icon" href="img/logo-mark.svg" type="image/svg+xml">
+    <link rel="manifest" href="manifest.webmanifest">
+</head>
+<body>
+
+<main class="app-shell">
+
+    <header class="app-topbar">
+        <a href="profile.html" id="meAvatar" class="text-decoration-none"></a>
+        <div class="flex-grow-1 lh-sm">
+            <div class="small text-muted fw-semibold" id="greet">Hello</div>
+            <div class="fw-800 fs-5" id="meName">&nbsp;</div>
+        </div>
+        <a href="leaderboard.html" class="icon-btn" aria-label="Leaderboard"><i class="bi bi-trophy"></i></a>
+        <a href="map.html" class="icon-btn" aria-label="Territory map"><i class="bi bi-geo-alt"></i></a>
+    </header>
+
+    <!-- Level & streak -->
+    <section class="fj-card fj-card-grad reveal d1">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <div class="small-caps" style="color:rgba(255,255,255,.8)">Your level</div>
+                <div class="display-6 fw-800 lh-1 mt-1">Lv <span id="lvl">1</span></div>
+            </div>
+            <div class="text-end">
+                <div class="d-inline-flex align-items-center gap-1 px-3 py-2 rounded-pill" style="background:rgba(0,0,0,.22)">
+                    <i class="bi bi-fire"></i><span class="fw-800" id="streak">0</span><span class="small fw-semibold">day streak</span>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex justify-content-between small fw-semibold mt-4 mb-2" style="color:rgba(255,255,255,.85)">
+            <span><span id="xpInto">0</span> / 100 XP</span>
+            <span><span id="xpTotal">0</span> XP total</span>
+        </div>
+        <div class="progress" style="background:rgba(0,0,0,.25);height:10px">
+            <div class="progress-bar" id="xpBar" style="width:0%;background:#fff"></div>
+        </div>
+    </section>
+
+    <!-- Calories -->
+    <section class="fj-card mt-3 reveal d2">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <div>
+                <div class="small-caps">Today's calories</div>
+                <div class="small text-muted" id="todayDate"></div>
+            </div>
+            <a href="food.html" class="btn btn-sm btn-ghost"><i class="bi bi-stars text-orange me-1"></i>Log meal</a>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <div class="ring" id="calRing" style="--value:0;--color:var(--fj-orange)">
+                <div class="ring-inner">
+                    <div class="ring-value" id="calLeft">0</div>
+                    <div class="ring-label">kcal left</div>
+                </div>
+            </div>
+            <div class="flex-grow-1">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="stat-icon tint-orange rounded-3 d-inline-flex align-items-center justify-content-center" style="width:34px;height:34px"><i class="bi bi-egg-fried"></i></span>
+                    <div><div class="fw-800" id="calEaten">0</div><div class="small text-muted">Eaten</div></div>
+                </div>
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="stat-icon tint-lime rounded-3 d-inline-flex align-items-center justify-content-center" style="width:34px;height:34px"><i class="bi bi-fire"></i></span>
+                    <div><div class="fw-800" id="calBurned">0</div><div class="small text-muted">Burned</div></div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="stat-icon tint-violet rounded-3 d-inline-flex align-items-center justify-content-center" style="width:34px;height:34px"><i class="bi bi-bullseye"></i></span>
+                    <div><div class="fw-800" id="calGoal">2,000</div><div class="small text-muted">Daily goal</div></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Today stats -->
+    <section class="stat-grid mt-3 reveal d3">
+        <div class="stat-tile">
+            <span class="stat-icon tint-pink"><i class="bi bi-heart-pulse-fill"></i></span>
+            <div class="stat-value" id="workouts">0</div>
+            <div class="stat-label">Workouts today</div>
+        </div>
+        <div class="stat-tile">
+            <span class="stat-icon tint-cyan"><i class="bi bi-stopwatch-fill"></i></span>
+            <div class="stat-value"><span id="minutes">0</span><small class="fs-6 text-muted"> min</small></div>
+            <div class="stat-label">Active time</div>
+        </div>
+        <div class="stat-tile">
+            <span class="stat-icon tint-lime"><i class="bi bi-signpost-split-fill"></i></span>
+            <div class="stat-value"><span id="distance">0</span><small class="fs-6 text-muted"> km</small></div>
+            <div class="stat-label">Distance</div>
+        </div>
+        <div class="stat-tile">
+            <span class="stat-icon tint-amber"><i class="bi bi-lightning-charge-fill"></i></span>
+            <div class="stat-value"><span id="protein">0</span><small class="fs-6 text-muted"> g</small></div>
+            <div class="stat-label">Protein eaten</div>
+        </div>
+    </section>
+
+    <!-- Weekly chart -->
+    <section class="fj-card mt-3 reveal d3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <div class="small-caps">Last 7 days</div>
+                <div class="fw-800" id="weekSummary">&nbsp;</div>
+            </div>
+            <div class="small text-muted text-end">
+                <div><span class="legend-dot" style="background:var(--fj-grad)"></span>Eaten</div>
+                <div><span class="legend-dot" style="background:var(--fj-lime)"></span>Burned</div>
+            </div>
+        </div>
+        <div class="week-chart" id="weekChart"></div>
+    </section>
+
+    <!-- Quick actions -->
+    <div class="section-title reveal d4"><h2>Quick actions</h2></div>
+    <section class="action-grid reveal d4">
+        <a href="food.html" class="action-tile"><span class="at-icon tint-orange"><i class="bi bi-stars"></i></span>Food AI</a>
+        <a href="activity.html" class="action-tile"><span class="at-icon tint-lime"><i class="bi bi-lightning-charge-fill"></i></span>Workout</a>
+        <a href="challenges.html" class="action-tile"><span class="at-icon tint-pink"><i class="bi bi-flag-fill"></i></span>Challenges</a>
+        <a href="leaderboard.html" class="action-tile"><span class="at-icon tint-amber"><i class="bi bi-trophy-fill"></i></span>Ranks</a>
+        <a href="map.html" class="action-tile"><span class="at-icon tint-cyan"><i class="bi bi-map-fill"></i></span>Live map</a>
+        <a href="feed.html" class="action-tile"><span class="at-icon tint-violet"><i class="bi bi-images"></i></span>Feed</a>
+        <a href="new-post.html" class="action-tile"><span class="at-icon tint-pink"><i class="bi bi-camera-fill"></i></span>Post</a>
+        <a href="profile.html" class="action-tile"><span class="at-icon tint-lime"><i class="bi bi-person-fill"></i></span>Profile</a>
+    </section>
+
+    <!-- Athletes nearby -->
+    <div class="section-title reveal d5">
+        <h2>Athletes near you</h2>
+        <a href="map.html">Open map <i class="bi bi-chevron-right"></i></a>
+    </div>
+    <section id="athleteStrip" class="chip-scroll reveal d5" style="gap:12px">
+        <div class="skeleton flex-shrink-0" style="width:110px;height:130px"></div>
+    </section>
+
+    <!-- Meals today -->
+    <div class="section-title reveal d5">
+        <h2>Today's meals</h2>
+        <a href="food.html">Food diary <i class="bi bi-chevron-right"></i></a>
+    </div>
+    <section id="mealsList" class="reveal d5">
+        <div class="skeleton" style="height:72px"></div>
+    </section>
+
+    <!-- Community -->
+    <div class="section-title reveal d6">
+        <h2>From the community</h2>
+        <a href="feed.html">See feed <i class="bi bi-chevron-right"></i></a>
+    </div>
+    <section id="communityStrip" class="chip-scroll reveal d6" style="gap:12px">
+        <div class="skeleton flex-shrink-0" style="width:150px;height:190px"></div>
+        <div class="skeleton flex-shrink-0" style="width:150px;height:190px"></div>
+    </section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/fitjanta.js"></script>
+<script>
+    const me = FJ.requireUser();
+    FJ.nav("home");
+
+    const $ = id => document.getElementById(id);
+    $("greet").textContent = FJ.greeting() + " 👋";
+    $("meName").textContent = me.name || "Athlete";
+    $("meAvatar").innerHTML = FJ.avatarOf(me, 44, true);
+    $("todayDate").textContent = new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
+
+    const MEAL_ICON = { Breakfast: "bi-cup-hot-fill", Lunch: "bi-egg-fried", Snack: "bi-apple", Dinner: "bi-moon-stars-fill" };
+    const MEAL_TINT = { Breakfast: "tint-amber", Lunch: "tint-orange", Snack: "tint-lime", Dinner: "tint-violet" };
+
+    async function load() {
+        try {
+            const s = await FJ.api(`/api/users/${me.id}/summary`);
+            FJ.setUser(s.user);
+            $("meName").textContent = s.user.name;
+            $("meAvatar").innerHTML = FJ.avatarOf(s.user, 44, true);
+
+            $("lvl").textContent = s.level;
+            FJ.countUp($("streak"), s.streak);
+            FJ.countUp($("xpInto"), s.xpIntoLevel);
+            FJ.countUp($("xpTotal"), s.xp);
+            setTimeout(() => $("xpBar").style.width = s.xpIntoLevel + "%", 150);
+
+            const left = Math.max(0, s.calorieGoal - s.caloriesEaten + s.caloriesBurned);
+            const pct = Math.min(100, Math.round(s.caloriesEaten * 100 / Math.max(1, s.calorieGoal)));
+            FJ.countUp($("calLeft"), left);
+            FJ.countUp($("calEaten"), s.caloriesEaten);
+            FJ.countUp($("calBurned"), s.caloriesBurned);
+            $("calGoal").textContent = FJ.fmt(s.calorieGoal);
+            const ring = $("calRing");
+            ring.style.setProperty("--color", pct > 100 ? "var(--fj-pink)" : "var(--fj-orange)");
+            requestAnimationFrame(() => ring.style.setProperty("--value", pct));
+
+            FJ.countUp($("workouts"), s.workoutsToday);
+            FJ.countUp($("minutes"), s.activeMinutes);
+            $("distance").textContent = s.distanceToday;
+            FJ.countUp($("protein"), s.proteinEaten);
+        } catch (e) {
+            FJ.toast(e.message, "error");
+        }
+
+        // Meals
+        try {
+            const day = await FJ.api(`/api/food/day/${me.id}`);
+            const list = $("mealsList");
+            if (!day.meals.length) {
+                list.innerHTML = `<a href="food.html" class="list-tile pressable">
+                    <span class="lt-icon tint-orange"><i class="bi bi-stars"></i></span>
+                    <span class="lt-body"><span class="lt-title d-block">No meals logged yet</span>
+                    <span class="lt-sub">Tell FitJanta AI what you ate. It counts the calories for you.</span></span>
+                    <i class="bi bi-chevron-right text-muted"></i></a>`;
+            } else {
+                list.innerHTML = day.meals.map(m => `
+                    <a href="food.html" class="list-tile pressable">
+                        <span class="lt-icon ${MEAL_TINT[m.mealType] || "tint-orange"}"><i class="bi ${MEAL_ICON[m.mealType] || "bi-egg-fried"}"></i></span>
+                        <span class="lt-body"><span class="lt-title d-block">${FJ.esc(m.mealType)}</span>
+                        <span class="lt-sub text-truncate d-block">${FJ.esc(m.description)}</span></span>
+                        <span class="lt-end">${FJ.fmt(m.calories)}<span class="d-block small text-muted fw-semibold">kcal</span></span>
+                    </a>`).join("");
+            }
+        } catch (e) { /* shown above */ }
+
+        // Weekly chart
+        try {
+            const week = await FJ.api(`/api/users/${me.id}/weekly`);
+            const max = Math.max(1, ...week.map(d => Math.max(d.eaten, d.burned)));
+            const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+            const totalBurned = week.reduce((s, d) => s + d.burned, 0);
+            const activeDays = week.filter(d => d.workouts > 0).length;
+            $("weekSummary").textContent = `${FJ.fmt(totalBurned)} kcal burned · ${activeDays}/7 active days`;
+            $("weekChart").innerHTML = week.map(d => `
+                <div class="week-col ${d.date === today ? "today" : ""}" title="${d.label}: ${d.eaten} eaten, ${d.burned} burned">
+                    <div class="week-bars">
+                        <div class="week-bar eat" style="height:0%" data-h="${Math.round(d.eaten * 100 / max)}"></div>
+                        <div class="week-bar burn" style="height:0%" data-h="${Math.round(d.burned * 100 / max)}"></div>
+                    </div>
+                    <span class="wl">${d.label.slice(0, 2)}</span>
+                </div>`).join("");
+            requestAnimationFrame(() => setTimeout(() => document.querySelectorAll(".week-bar").forEach(b => b.style.height = Math.max(3, b.dataset.h) + "%"), 80));
+        } catch (e) { /* ignore */ }
+
+        // Athletes near you
+        try {
+            const m = await FJ.api(`/api/map/${me.id}`);
+            const others = m.athletes.filter(a => !a.me).slice(0, 10);
+            $("athleteStrip").innerHTML = others.length ? others.map(a => `
+                <a href="${FJ.profileHref(a.id)}" class="fj-card tight flat text-center text-decoration-none text-white flex-shrink-0 pressable" style="width:112px">
+                    ${FJ.avatarOf(a, 56, true)}
+                    <div class="fw-bold small mt-2 text-truncate">${FJ.esc(a.name.split(" ")[0])}</div>
+                    <div class="small text-muted">Lv ${a.level}</div>
+                    <div class="small text-orange fw-bold">${a.distanceKm != null ? FJ.fmtDistance(a.distanceKm) : FJ.esc(a.city || "")}</div>
+                </a>`).join("") : `<div class="fj-card flat w-100 small text-muted text-center">No other athletes yet. Invite your friends!</div>`;
+        } catch (e) { /* ignore */ }
+
+        // Community strip
+        try {
+            const posts = (await FJ.api("/api/posts")).slice(0, 8);
+            const strip = $("communityStrip");
+            if (!posts.length) {
+                strip.innerHTML = `<a href="new-post.html" class="fj-card flat text-decoration-none text-center flex-shrink-0 d-flex flex-column align-items-center justify-content-center" style="width:100%;min-height:150px">
+                    <i class="bi bi-camera fs-1 text-orange"></i><div class="fw-bold mt-2 text-white">Be the first to post</div>
+                    <div class="small text-muted">Share a workout selfie or a healthy meal</div></a>`;
+            } else {
+                strip.innerHTML = posts.map(p => `
+                    <a href="feed.html#post-${p.id}" class="flex-shrink-0 position-relative rounded-4 overflow-hidden pressable" style="width:150px;height:190px;background:var(--fj-surface-2)">
+                        <img src="${FJ.esc(p.imageUrl)}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover">
+                        <span class="position-absolute bottom-0 start-0 end-0 p-2 small fw-bold text-white" style="background:linear-gradient(transparent,rgba(0,0,0,.8))">
+                            ${FJ.esc(p.userName.split(" ")[0])}<span class="d-block fw-normal text-truncate" style="font-size:.7rem;opacity:.8">${FJ.esc(p.caption || "")}</span>
+                        </span>
+                    </a>`).join("");
+            }
+        } catch (e) { /* ignore */ }
+    }
+
+    load();
+</script>
+</body>
+</html>

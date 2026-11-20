@@ -1,0 +1,880 @@
+/* =========================
+   FIT JANTA MAIN THEME
+   ========================= */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    min-height: 100vh;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #111111;
+    color: #ffffff;
+
+    display: flex;
+    justify-content: center;
+}
+
+
+/* =========================
+   MAIN APP CONTAINER
+   ========================= */
+
+.phone {
+    width: 100%;
+    max-width: 430px;
+    min-height: 100vh;
+
+    background: #111111;
+
+    position: relative;
+    overflow: hidden;
+}
+
+
+/* =========================
+   WELCOME SCREEN
+   ========================= */
+
+.welcome {
+    min-height: 100vh;
+
+    padding: 35px 28px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+
+/* =========================
+   LOGO
+   ========================= */
+
+.logo {
+    font-size: 25px;
+    font-weight: 900;
+    letter-spacing: 2px;
+}
+
+.logo span {
+    font-weight: 400;
+}
+
+
+/* =========================
+   MAIN CONTENT
+   ========================= */
+
+.welcome-content {
+    margin-top: auto;
+    margin-bottom: auto;
+
+    padding-top: 80px;
+    padding-bottom: 60px;
+}
+
+
+.tagline {
+    font-size: 11px;
+    letter-spacing: 2.5px;
+    font-weight: bold;
+
+    margin-bottom: 25px;
+
+    opacity: 0.65;
+}
+
+
+h1 {
+    font-size: 52px;
+    line-height: 0.98;
+    letter-spacing: -2px;
+    font-weight: 800;
+
+    margin-bottom: 28px;
+}
+
+
+h1 span {
+    font-weight: 300;
+}
+
+
+.description {
+    font-size: 16px;
+    line-height: 1.6;
+
+    color: #bdbdbd;
+
+    margin-bottom: 40px;
+}
+
+
+/* =========================
+   BUTTON
+   ========================= */
+
+button {
+    width: 100%;
+
+    padding: 18px 20px;
+
+    border: none;
+    border-radius: 12px;
+
+    background: #ffffff;
+    color: #111111;
+
+    font-size: 15px;
+    font-weight: bold;
+
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    transition: 0.2s ease;
+}
+
+
+button:hover {
+    transform: translateY(-2px);
+}
+
+
+.arrow {
+    font-size: 22px;
+}
+
+
+/* =========================
+   FOOTER
+   ========================= */
+
+.footer-text {
+    font-size: 9px;
+    letter-spacing: 2px;
+
+    color: #666666;
+
+    text-align: center;
+}
+
+/* =========================
+   LOGIN PAGE
+   ========================= */
+
+.login-page {
+    min-height: 100vh;
+    padding: 35px 28px;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.back {
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 28px;
+    margin-bottom: 45px;
+}
+
+.login-content {
+    width: 100%;
+}
+
+.login-content .logo {
+    margin-bottom: 55px;
+}
+
+.login-content .tagline {
+    margin-bottom: 18px;
+}
+
+.login-content h1 {
+    margin-bottom: 20px;
+}
+
+.login-content .description {
+    margin-bottom: 35px;
+}
+
+
+/* Form */
+
+#loginForm {
+    display: flex;
+    flex-direction: column;
+}
+
+#loginForm label {
+    font-size: 12px;
+    color: #aaaaaa;
+    margin-bottom: 8px;
+}
+
+#loginForm input {
+    width: 100%;
+    padding: 16px;
+
+    margin-bottom: 20px;
+
+    border: 1px solid #333333;
+    border-radius: 10px;
+
+    background: #1b1b1b;
+    color: #ffffff;
+
+    font-size: 15px;
+    outline: none;
+}
+
+#loginForm input::placeholder {
+    color: #666666;
+}
+
+#loginForm input:focus {
+    border-color: #ffffff;
+}
+
+#loginForm button {
+    margin-top: 10px;
+}
+
+
+/* Signup link */
+
+.signup-text {
+    text-align: center;
+    margin-top: 30px;
+
+    font-size: 13px;
+    color: #777777;
+}
+
+.signup-text a {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+/* =========================
+   SIGNUP PAGE
+   ========================= */
+
+.signup-page {
+    min-height: 100vh;
+    padding: 35px 28px;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.signup-content {
+    width: 100%;
+}
+
+.signup-content .logo {
+    margin-bottom: 55px;
+}
+
+.signup-content .tagline {
+    margin-bottom: 18px;
+}
+
+.signup-content h1 {
+    margin-bottom: 20px;
+}
+
+.signup-content .description {
+    margin-bottom: 35px;
+}
+
+
+/* Signup Form */
+
+#signupForm {
+    display: flex;
+    flex-direction: column;
+}
+
+#signupForm label {
+    font-size: 12px;
+    color: #aaaaaa;
+    margin-bottom: 8px;
+}
+
+#signupForm input {
+    width: 100%;
+    padding: 16px;
+
+    margin-bottom: 20px;
+
+    border: 1px solid #333333;
+    border-radius: 10px;
+
+    background: #1b1b1b;
+    color: #ffffff;
+
+    font-size: 15px;
+    outline: none;
+}
+
+#signupForm input::placeholder {
+    color: #666666;
+}
+
+#signupForm input:focus {
+    border-color: #ffffff;
+}
+
+#signupForm button {
+    margin-top: 10px;
+}
+
+
+/* Login link */
+
+.login-text {
+    text-align: center;
+    margin-top: 30px;
+
+    font-size: 13px;
+    color: #777777;
+}
+
+.login-text a {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: bold;
+}
+/* =========================
+   HOME PAGE
+   ========================= */
+
+.home-page {
+    min-height: 100vh;
+    padding: 30px 28px 40px;
+}
+
+
+/* Header */
+
+.home-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 60px;
+}
+
+.logout {
+    color: #777777;
+    text-decoration: none;
+    font-size: 12px;
+}
+
+.logout:hover {
+    color: #ffffff;
+}
+
+
+/* Introduction */
+
+.home-intro {
+    margin-bottom: 40px;
+}
+
+.home-intro .tagline {
+    margin-bottom: 18px;
+}
+
+.home-intro h1 {
+    margin-bottom: 20px;
+}
+
+.home-intro .description {
+    margin-bottom: 0;
+}
+
+
+/* Stats */
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: #1b1b1b;
+
+    border: 1px solid #292929;
+    border-radius: 12px;
+
+    padding: 18px 12px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.stat-label {
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    color: #777777;
+}
+
+.stat-card strong {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+
+/* Feature Cards */
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.feature-card {
+    min-height: 180px;
+
+    position: relative;
+
+    padding: 20px;
+
+    background: #1b1b1b;
+
+    border: 1px solid #292929;
+    border-radius: 14px;
+
+    text-decoration: none;
+    color: #ffffff;
+
+    display: flex;
+    flex-direction: column;
+
+    transition: 0.2s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-3px);
+    border-color: #555555;
+}
+
+.feature-number {
+    font-size: 10px;
+    color: #666666;
+
+    margin-bottom: auto;
+}
+
+.feature-card h2 {
+    font-size: 21px;
+    margin-bottom: 8px;
+}
+
+.feature-card p {
+    font-size: 11px;
+    line-height: 1.5;
+    color: #888888;
+
+    padding-right: 5px;
+}
+
+.feature-arrow {
+    position: absolute;
+    right: 18px;
+    top: 18px;
+
+    font-size: 20px;
+}
+
+
+/* Bottom Message */
+
+.home-message {
+    margin-top: 45px;
+
+    text-align: center;
+}
+
+.home-message p {
+    font-size: 10px;
+    line-height: 1.7;
+    letter-spacing: 2px;
+    color: #555555;
+}
+
+.home-message span {
+    color: #888888;
+}
+/* =========================
+   ACTIVITY PAGE
+   ========================= */
+
+.activity-page {
+    min-height: 100vh;
+    padding: 30px 28px 50px;
+}
+
+
+/* Header */
+
+.page-header {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+
+    margin-bottom: 55px;
+}
+
+.page-header .back {
+    margin-bottom: 0;
+}
+
+.page-header .logo {
+    font-size: 20px;
+}
+
+
+/* Introduction */
+
+.page-intro {
+    margin-bottom: 35px;
+}
+
+.page-intro .tagline {
+    margin-bottom: 18px;
+}
+
+.page-intro h1 {
+    margin-bottom: 20px;
+}
+
+.page-intro .description {
+    margin-bottom: 0;
+}
+
+
+/* Activity Form */
+
+#activityForm {
+    display: flex;
+    flex-direction: column;
+}
+
+#activityForm label {
+    font-size: 12px;
+    color: #aaaaaa;
+
+    margin-bottom: 8px;
+}
+
+#activityForm input,
+#activityForm select {
+    width: 100%;
+
+    padding: 16px;
+
+    margin-bottom: 20px;
+
+    border: 1px solid #333333;
+    border-radius: 10px;
+
+    background: #1b1b1b;
+    color: #ffffff;
+
+    font-size: 15px;
+
+    outline: none;
+}
+
+#activityForm select {
+    cursor: pointer;
+}
+
+#activityForm input::placeholder {
+    color: #666666;
+}
+
+#activityForm input:focus,
+#activityForm select:focus {
+    border-color: #ffffff;
+}
+
+#activityForm button {
+    margin-top: 10px;
+}
+
+
+/* Message */
+
+#activityMessage {
+    text-align: center;
+
+    margin-top: 20px;
+
+    font-size: 13px;
+}
+
+
+/* Recent Activity */
+
+.recent-activity {
+    margin-top: 50px;
+}
+
+.recent-activity .tagline {
+    margin-bottom: 20px;
+}
+
+
+/* Activity Card */
+
+.activity-card {
+    background: #1b1b1b;
+
+    border: 1px solid #292929;
+    border-radius: 12px;
+
+    padding: 18px;
+
+    margin-bottom: 12px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 15px;
+}
+
+.activity-card strong {
+    font-size: 16px;
+}
+
+.activity-card p {
+    font-size: 11px;
+    color: #666666;
+
+    margin-top: 6px;
+}
+
+.activity-details {
+    display: flex;
+    flex-direction: column;
+
+    align-items: flex-end;
+
+    gap: 4px;
+}
+
+.activity-details span {
+    font-size: 10px;
+    color: #888888;
+}
+
+.empty-activity {
+    font-size: 13px;
+    color: #666666;
+}
+
+/* =========================
+   CHALLENGES PAGE
+   ========================= */
+
+.challenges-page {
+    min-height: 100vh;
+    padding: 30px 28px 50px;
+}
+
+.challenges-page .page-header {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+    margin-bottom: 55px;
+}
+
+.challenges-page .page-header .back {
+    margin-bottom: 0;
+}
+
+.challenges-page .page-header .logo {
+    font-size: 20px;
+}
+
+.challenges-page .page-intro {
+    margin-bottom: 35px;
+}
+
+.challenges-page .page-intro .tagline {
+    margin-bottom: 18px;
+}
+
+.challenges-page .page-intro h1 {
+    margin-bottom: 20px;
+}
+
+.challenges-page .page-intro .description {
+    margin-bottom: 0;
+}
+
+.challenge-card {
+    background: #1b1b1b;
+    border: 1px solid #292929;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 14px;
+}
+
+.challenge-number {
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    color: #666666;
+    margin-bottom: 18px;
+}
+
+.challenge-card h2 {
+    font-size: 22px;
+    margin-bottom: 10px;
+}
+
+.challenge-description {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #888888;
+    margin-bottom: 20px;
+}
+
+.challenge-info {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 15px;
+    border-top: 1px solid #292929;
+}
+
+.challenge-info span {
+    font-size: 10px;
+    color: #aaaaaa;
+}
+
+#challengeMessage {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 13px;
+}
+
+.empty-challenges {
+    font-size: 13px;
+    color: #666666;
+    text-align: center;
+}
+/* =========================
+   LEADERBOARD PAGE
+   ========================= */
+
+.leaderboard-page {
+    min-height: 100vh;
+    padding: 30px 28px 50px;
+}
+
+.leaderboard-page .page-header {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+    margin-bottom: 55px;
+}
+
+.leaderboard-page .page-header .back {
+    margin-bottom: 0;
+}
+
+.leaderboard-page .page-header .logo {
+    font-size: 20px;
+}
+
+.leaderboard-page .page-intro {
+    margin-bottom: 35px;
+}
+
+.leaderboard-page .page-intro .tagline {
+    margin-bottom: 18px;
+}
+
+.leaderboard-page .page-intro h1 {
+    margin-bottom: 20px;
+}
+
+.leaderboard-page .page-intro .description {
+    margin-bottom: 0;
+}
+
+.leaderboard-card {
+    background: #1b1b1b;
+    border: 1px solid #292929;
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.leaderboard-rank {
+    font-size: 13px;
+    font-weight: bold;
+    width: 35px;
+}
+
+.leaderboard-player {
+    flex: 1;
+}
+
+.leaderboard-player strong {
+    font-size: 15px;
+}
+
+.leaderboard-player p {
+    font-size: 10px;
+    color: #666666;
+    margin-top: 6px;
+}
+
+.leaderboard-xp {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.leaderboard-xp strong {
+    font-size: 18px;
+}
+
+.leaderboard-xp span {
+    font-size: 9px;
+    color: #777777;
+    letter-spacing: 1px;
+}
+
+#leaderboardMessage {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 13px;
+}
+
+.empty-leaderboard {
+    text-align: center;
+    font-size: 13px;
+    color: #666666;
+}

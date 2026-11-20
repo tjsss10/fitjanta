@@ -1,0 +1,19 @@
+# Render Blueprint: creates the FitJanta web service from the Dockerfile.
+# Database login values are entered in the Render dashboard (never stored here).
+services:
+  - type: web
+    name: fitjanta
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/food/info
+    envVars:
+      - key: DB_URL
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_POOL_SIZE
+        value: "4"

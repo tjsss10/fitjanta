@@ -1,0 +1,12 @@
+build/
+.gradle/
+bin/
+out/
+uploads/
+tools/
+old-ui-backup/
+data/
+*.log
+*.iml
+.idea/
+.vscode/

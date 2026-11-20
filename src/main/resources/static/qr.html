@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open FitJanta on your phone</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            min-height: 100vh;
+            background: #111111;
+            color: #ffffff;
+            font-family: Arial, Helvetica, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 460px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 26px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        .logo span { font-weight: 400; }
+
+        .tagline {
+            color: #aaaaaa;
+            font-size: 12px;
+            letter-spacing: 2px;
+            margin-bottom: 28px;
+        }
+
+        #qr {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 18px;
+            display: inline-block;
+            margin-bottom: 22px;
+        }
+
+        #qr img, #qr svg { display: block; width: 280px; height: 280px; }
+
+        .url {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 26px;
+            word-break: break-all;
+        }
+
+        .steps {
+            text-align: left;
+            background: #1b1b1b;
+            border: 1px solid #333333;
+            border-radius: 14px;
+            padding: 18px 20px;
+            color: #dddddd;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .steps b { color: #ffffff; }
+
+        .other {
+            color: #777777;
+            font-size: 12px;
+            margin-top: 16px;
+        }
+
+        .error { color: #ff8a8a; margin-bottom: 20px; }
+    </style>
+</head>
+
+<body>
+
+<main class="card">
+
+    <div class="logo">FIT<span>JANTA</span></div>
+    <p class="tagline">SCAN TO OPEN ON YOUR PHONE</p>
+
+    <div id="qr"></div>
+    <p class="url" id="url">Finding laptop address…</p>
+
+    <div class="steps">
+        1. Connect the phone to the <b>same Wi-Fi</b> as this laptop.<br>
+        2. Open the <b>Camera</b> app and point it at the QR code.<br>
+        3. Tap the link that appears. FitJanta opens in Safari.<br>
+        4. Tap <b>Share → Add to Home Screen</b> to get the app icon.
+    </div>
+
+    <p class="other" id="other"></p>
+
+</main>
+
+<script>
+    async function showQr() {
+        try {
+            const response = await fetch("/api/server-info");
+            const info = await response.json();
+
+            if (!info.urls || info.urls.length === 0) {
+                document.getElementById("url").innerHTML =
+                    '<span class="error">No Wi-Fi address found. Connect this laptop to Wi-Fi and refresh.</span>';
+                return;
+            }
+
+            const url = info.urls[0];
+            document.getElementById("url").textContent = url;
+            if (info.publicUrl) {
+                document.querySelector(".tagline").textContent = "PUBLIC LINK · WORKS ON ANY NETWORK";
+                document.querySelector(".steps").innerHTML =
+                    "1. Open the <b>Camera</b> app on any phone and point it at the QR code.<br>" +
+                    "2. Tap the link that appears. FitJanta opens in Safari (Wi-Fi or mobile data).<br>" +
+                    (info.publicUrl.includes("pinggy") ? "&nbsp;&nbsp;&nbsp;If a <b>Caution</b> page appears first, tap <b>Continue</b>.<br>" : "") +
+                    "3. Tap <b>Share → Add to Home Screen</b> to get the app icon.<br>" +
+                    "<span style='color:#8C96A8'>The link changes each time the public link is restarted.</span>";
+            }
+
+            if (typeof qrcode === "function") {
+                const qr = qrcode(0, "M");
+                qr.addData(url);
+                qr.make();
+                document.getElementById("qr").innerHTML = qr.createSvgTag({ cellSize: 8, margin: 0, scalable: true });
+            } else {
+                document.getElementById("qr").style.display = "none";
+                document.getElementById("other").textContent =
+                    "QR library could not load (no internet). Type the address above in Safari instead.";
+            }
+
+            if (info.urls.length > 1) {
+                document.getElementById("other").textContent =
+                    "Other addresses on this laptop: " + info.urls.slice(1).join(", ");
+            }
+        } catch (error) {
+            document.getElementById("url").innerHTML =
+                '<span class="error">Could not reach the FitJanta server.</span>';
+        }
+    }
+
+    showQr();
+</script>
+
+</body>
+</html>

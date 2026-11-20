@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="FitJanta">
+  <defs>
+    <linearGradient id="fjGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FF8A2B"/>
+      <stop offset="0.55" stop-color="#FF4D4D"/>
+      <stop offset="1" stop-color="#FF2E7E"/>
+    </linearGradient>
+    <linearGradient id="fjShine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="18" fill="url(#fjGrad)"/>
+  <rect x="3" y="3" width="58" height="30" rx="15" fill="url(#fjShine)"/>
+  <!-- Stylised F -->
+  <path d="M23 37V15h19M23 26.5h14" fill="none" stroke="#fff" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Pulse line -->
+  <polyline points="12,46 22,46 27,38 33,52 38,42 41,46 52,46" fill="none" stroke="#C5F82A" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

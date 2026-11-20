@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Food AI · FitJanta</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="css/fitjanta.css" rel="stylesheet">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="FitJanta">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0A0D12">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="icon" href="img/logo-mark.svg" type="image/svg+xml">
+    <link rel="manifest" href="manifest.webmanifest">
+</head>
+<body>
+
+<main class="app-shell">
+
+    <header class="app-topbar">
+        <div class="flex-grow-1">
+            <span class="ai-badge mb-1"><i class="bi bi-stars"></i> FitJanta AI</span>
+            <h1 class="title mt-1">Food tracker</h1>
+        </div>
+        <span class="small text-muted fw-semibold" id="dateLabel"></span>
+    </header>
+
+    <!-- Daily summary -->
+    <section class="fj-card reveal d1">
+        <div class="d-flex align-items-center gap-3">
+            <div class="ring" id="ring" style="--size:118px;--thick:12px;--value:0">
+                <div class="ring-inner">
+                    <div class="ring-value fs-4" id="eaten">0</div>
+                    <div class="ring-label">of <span id="goal">2,000</span> kcal</div>
+                </div>
+            </div>
+            <div class="flex-grow-1">
+                <div class="macro mb-3">
+                    <div class="macro-head"><span class="text-cyan">Protein</span><span><span id="pVal">0</span>/<span id="pGoal">0</span> g</span></div>
+                    <div class="progress"><div class="progress-bar bar-cyan" id="pBar" style="width:0%"></div></div>
+                </div>
+                <div class="macro mb-3">
+                    <div class="macro-head"><span class="text-amber">Carbs</span><span><span id="cVal">0</span>/<span id="cGoal">0</span> g</span></div>
+                    <div class="progress"><div class="progress-bar bar-amber" id="cBar" style="width:0%"></div></div>
+                </div>
+                <div class="macro">
+                    <div class="macro-head"><span class="text-violet">Fat</span><span><span id="fVal">0</span>/<span id="fGoal">0</span> g</span></div>
+                    <div class="progress"><div class="progress-bar bar-violet" id="fBar" style="width:0%"></div></div>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex justify-content-between mt-3 pt-3 border-top" style="border-color:var(--fj-border)!important">
+            <div class="small"><span class="text-muted">Remaining</span> <span class="fw-800" id="remaining">2,000</span> kcal</div>
+            <div class="small"><span class="text-muted">Fibre</span> <span class="fw-800" id="fiber">0</span> g</div>
+            <div class="small"><span class="text-muted">Meals</span> <span class="fw-800" id="mealCount">0</span></div>
+        </div>
+    </section>
+
+    <!-- AI composer -->
+    <section class="fj-card mt-3 reveal d2">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="stat-icon tint-orange rounded-3 d-inline-flex align-items-center justify-content-center" style="width:38px;height:38px"><i class="bi bi-chat-square-heart-fill"></i></span>
+            <div>
+                <div class="fw-800">What did you eat?</div>
+                <div class="small text-muted">Type naturally. AI works out calories &amp; macros.</div>
+            </div>
+        </div>
+
+        <div class="chip-scroll mb-3" id="mealChips">
+            <input type="radio" class="btn-check" name="meal" id="mBreakfast" value="Breakfast"><label class="chip" for="mBreakfast"><i class="bi bi-cup-hot"></i>Breakfast</label>
+            <input type="radio" class="btn-check" name="meal" id="mLunch" value="Lunch"><label class="chip" for="mLunch"><i class="bi bi-sun"></i>Lunch</label>
+            <input type="radio" class="btn-check" name="meal" id="mSnack" value="Snack"><label class="chip" for="mSnack"><i class="bi bi-apple"></i>Snack</label>
+            <input type="radio" class="btn-check" name="meal" id="mDinner" value="Dinner"><label class="chip" for="mDinner"><i class="bi bi-moon-stars"></i>Dinner</label>
+        </div>
+
+        <textarea id="foodText" class="form-control" rows="3" maxlength="600"
+                  placeholder="e.g. 2 roti, 1 bowl dal tadka, salad and a glass of buttermilk"></textarea>
+
+        <div class="small-caps mt-3 mb-2">Try an example</div>
+        <div class="chip-scroll" id="examples"></div>
+
+        <!-- Live analysis -->
+        <div id="analysis" class="mt-3 d-none"></div>
+
+        <button id="saveBtn" class="btn btn-grad w-100 py-3 mt-3" disabled>
+            <i class="bi bi-journal-plus me-1"></i> Add to food diary
+        </button>
+    </section>
+
+    <!-- Diary -->
+    <div class="section-title reveal d3">
+        <h2>Food diary</h2>
+        <span class="small text-muted" id="diaryHint">Today</span>
+    </div>
+    <section id="diary" class="reveal d3">
+        <div class="skeleton" style="height:90px"></div>
+    </section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/fitjanta.js"></script>
+<script>
+    const me = FJ.requireUser();
+    FJ.nav("food");
+    const $ = id => document.getElementById(id);
+
+    $("dateLabel").textContent = new Date().toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
+
+    // Pre-select a meal based on the time of day
+    const h = new Date().getHours();
+    const autoMeal = h < 11 ? "Breakfast" : h < 16 ? "Lunch" : h < 19 ? "Snack" : "Dinner";
+    $("m" + autoMeal).checked = true;
+
+    const EXAMPLES = [
+        "2 roti, dal tadka and salad",
+        "Masala dosa with sambar",
+        "Oats with banana and milk",
+        "Chicken biryani and raita",
+        "Paneer butter masala, 2 naan",
+        "3 idli, sambar and chai",
+        "2 boiled eggs, 2 brown bread",
+        "Samosa and masala chai"
+    ];
+    $("examples").innerHTML = EXAMPLES.map(t => `<button type="button" class="chip" data-text="${FJ.esc(t)}">${FJ.esc(t)}</button>`).join("");
+    $("examples").addEventListener("click", e => {
+        const b = e.target.closest("[data-text]");
+        if (!b) return;
+        $("foodText").value = b.dataset.text;
+        FJ.haptic();
+        analyze();
+    });
+
+    const EMOJI_BY_NAME = [
+        [/roti|paratha|naan|thepla|puri|bhatura/i, "🫓"], [/rice|biryani|khichdi|pulao/i, "🍚"], [/dal|rajma|chole|sambar|kadhi|curry|sabzi|bhindi|baingan/i, "🍲"],
+        [/paneer|tofu/i, "🧀"], [/egg|omelette/i, "🥚"], [/chicken|mutton|tandoori/i, "🍗"], [/fish/i, "🐟"], [/dosa|uttapam|idli|dhokla/i, "🥞"],
+        [/samosa|kachori|pakora|vada|fries/i, "🍟"], [/pizza/i, "🍕"], [/burger/i, "🍔"], [/sandwich|bread|toast/i, "🥪"], [/noodles|pasta|momos/i, "🍜"],
+        [/milk|lassi|buttermilk|curd|yogurt|raita/i, "🥛"], [/chai|tea|coffee/i, "☕"], [/juice|soft drink|coconut/i, "🥤"],
+        [/banana/i, "🍌"], [/apple/i, "🍎"], [/orange/i, "🍊"], [/mango/i, "🥭"], [/grapes/i, "🍇"], [/watermelon/i, "🍉"], [/papaya|fruit|pomegranate|dates/i, "🍓"],
+        [/salad|sprouts/i, "🥗"], [/potato/i, "🥔"], [/almond|peanut|nuts/i, "🥜"], [/oats|cornflakes|quinoa|poha|upma/i, "🥣"],
+        [/ice cream/i, "🍨"], [/chocolate/i, "🍫"], [/cake|gulab|jalebi|ladoo|kheer|biscuit/i, "🍰"], [/whey|soya/i, "💪"], [/honey|sugar|butter/i, "🍯"]
+    ];
+    const emoji = name => (EMOJI_BY_NAME.find(([re]) => re.test(name)) || [null, "🍽️"])[1];
+    const scoreClass = s => s >= 7 ? "score-good" : s >= 4 ? "score-ok" : "score-bad";
+
+    let lastAnalysis = null;
+    let timer = null;
+    let requestNo = 0;
+
+    $("foodText").addEventListener("input", () => {
+        clearTimeout(timer);
+        timer = setTimeout(analyze, 550);
+    });
+
+    async function analyze() {
+        const text = $("foodText").value.trim();
+        const box = $("analysis");
+        if (!text) {
+            box.classList.add("d-none");
+            $("saveBtn").disabled = true;
+            lastAnalysis = null;
+            return;
+        }
+        const myRequest = ++requestNo;
+        box.classList.remove("d-none");
+        box.innerHTML = `<div class="d-flex align-items-center gap-2 text-muted small py-2">
+            <span class="ai-thinking"><span></span><span></span><span></span></span> FitJanta AI is analysing your meal…</div>`;
+
+        try {
+            const a = await FJ.api("/api/food/analyze", { method: "POST", body: { userId: me.id, text } });
+            if (myRequest !== requestNo) return;   // a newer request is running
+            lastAnalysis = a;
+            renderAnalysis(a);
+            $("saveBtn").disabled = a.items.length === 0;
+        } catch (e) {
+            box.innerHTML = `<div class="alert alert-danger small py-2 mb-0">${FJ.esc(e.message)}</div>`;
+        }
+    }
+
+    function renderAnalysis(a) {
+        const box = $("analysis");
+        if (!a.items.length) {
+            box.innerHTML = `<div class="fj-card flat tight" style="background:var(--fj-surface-2)">
+                <div class="fw-bold mb-1"><i class="bi bi-question-circle text-amber me-1"></i>${FJ.esc(a.verdict)}</div>
+                ${a.tips.map(t => `<div class="tip"><i class="bi bi-lightbulb"></i><span>${FJ.esc(t)}</span></div>`).join("")}
+            </div>`;
+            return;
+        }
+        box.innerHTML = `
+            <div class="fj-card flat tight reveal" style="background:var(--fj-surface-2)">
+                <div class="d-flex align-items-center gap-3 mb-2">
+                    <div class="score-badge ${scoreClass(a.healthScore)}">${a.healthScore}<small>SCORE</small></div>
+                    <div class="flex-grow-1">
+                        <div class="fw-800">${FJ.esc(a.verdict)}</div>
+                        <div class="small text-muted">${a.items.length} item${a.items.length > 1 ? "s" : ""} recognised · ${a.goalPercent}% of daily goal</div>
+                    </div>
+                    <div class="text-end"><div class="fs-4 fw-800 text-grad">${FJ.fmt(a.calories)}</div><div class="small text-muted">kcal</div></div>
+                </div>
+
+                <div class="d-flex gap-2 mb-2 small fw-bold">
+                    <span class="badge rounded-pill tint-cyan">P ${a.protein} g</span>
+                    <span class="badge rounded-pill tint-amber">C ${a.carbs} g</span>
+                    <span class="badge rounded-pill tint-violet">F ${a.fat} g</span>
+                    <span class="badge rounded-pill tint-lime">Fibre ${a.fiber} g</span>
+                </div>
+
+                <div>
+                    ${a.items.map(it => `
+                        <div class="food-item">
+                            <span class="fi-emoji">${emoji(it.foodName)}</span>
+                            <div class="min-w-0">
+                                <div class="fi-name">${FJ.esc(it.foodName)}</div>
+                                <div class="fi-sub">${it.quantity} ${FJ.esc(it.unit)} · ~${it.grams} g · P ${it.protein} · C ${it.carbs} · F ${it.fat}</div>
+                            </div>
+                            <div class="fi-kcal">${FJ.fmt(it.calories)}<small>kcal</small></div>
+                        </div>`).join("")}
+                </div>
+
+                <div class="mt-2 pt-2 border-top" style="border-color:var(--fj-border)!important">
+                    <div class="small-caps mb-1"><i class="bi bi-robot me-1"></i>AI coach</div>
+                    ${a.tips.map(t => `<div class="tip"><i class="bi bi-check2-circle"></i><span>${FJ.esc(t)}</span></div>`).join("")}
+                </div>
+            </div>`;
+    }
+
+    $("saveBtn").addEventListener("click", async () => {
+        const text = $("foodText").value.trim();
+        const mealType = document.querySelector('input[name="meal"]:checked').value;
+        const btn = $("saveBtn");
+        FJ.setLoading(btn, true, "Saving to diary");
+        try {
+            const saved = await FJ.api("/api/food/logs", { method: "POST", body: { userId: me.id, text, mealType } });
+            FJ.toast(`${saved.mealType} saved · ${FJ.fmt(saved.calories)} kcal`, "success");
+            if (saved.healthScore >= 8) FJ.celebrate(`Score ${saved.healthScore}/10`, "Healthy plate! 🥗");
+            $("foodText").value = "";
+            $("analysis").classList.add("d-none");
+            lastAnalysis = null;
+            await loadDay();
+        } catch (e) {
+            FJ.toast(e.message, "error");
+        } finally {
+            FJ.setLoading(btn, false);
+            btn.disabled = true;
+        }
+    });
+
+    const MEAL_ICON = { Breakfast: "bi-cup-hot-fill", Lunch: "bi-sun-fill", Snack: "bi-apple", Dinner: "bi-moon-stars-fill" };
+    const MEAL_TINT = { Breakfast: "tint-amber", Lunch: "tint-orange", Snack: "tint-lime", Dinner: "tint-violet" };
+
+    async function loadDay() {
+        try {
+            const d = await FJ.api(`/api/food/day/${me.id}`);
+            const pct = Math.round(d.calories * 100 / Math.max(1, d.goal));
+            FJ.countUp($("eaten"), d.calories);
+            $("goal").textContent = FJ.fmt(d.goal);
+            $("remaining").textContent = FJ.fmt(Math.max(0, d.remaining));
+            $("fiber").textContent = d.fiber;
+            $("mealCount").textContent = d.meals.length;
+            const ring = $("ring");
+            ring.style.setProperty("--color", pct > 100 ? "var(--fj-pink)" : "var(--fj-orange)");
+            requestAnimationFrame(() => ring.style.setProperty("--value", Math.min(100, pct)));
+
+            [["p", d.protein, d.proteinGoal], ["c", d.carbs, d.carbsGoal], ["f", d.fat, d.fatGoal]].forEach(([k, v, g]) => {
+                $(k + "Val").textContent = Math.round(v);
+                $(k + "Goal").textContent = g;
+                $(k + "Bar").style.width = Math.min(100, Math.round(v * 100 / Math.max(1, g))) + "%";
+            });
+
+            const diary = $("diary");
+            if (!d.meals.length) {
+                diary.innerHTML = `<div class="fj-card flat empty-state"><i class="bi bi-journal-richtext"></i>
+                    <div class="fw-bold text-white">Your diary is empty</div><div class="small">Describe your first meal above.</div></div>`;
+                return;
+            }
+            diary.innerHTML = d.meals.slice().reverse().map(m => `
+                <div class="fj-card tight meal-block">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="lt-icon ${MEAL_TINT[m.mealType] || "tint-orange"} rounded-4 d-inline-flex align-items-center justify-content-center" style="width:46px;height:46px;font-size:1.2rem"><i class="bi ${MEAL_ICON[m.mealType] || "bi-egg-fried"}"></i></span>
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="fw-800">${FJ.esc(m.mealType)} <span class="small text-muted fw-semibold ms-1">${new Date(m.createdAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</span></div>
+                            <div class="small text-muted text-truncate">${FJ.esc(m.description)}</div>
+                        </div>
+                        <div class="text-end"><div class="fw-800">${FJ.fmt(m.calories)}</div><div class="small text-muted">kcal</div></div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 mt-3">
+                        <div class="d-flex flex-wrap gap-1 flex-grow-1">
+                            <span class="badge rounded-pill ${scoreClass(m.healthScore)}">Score ${m.healthScore}/10</span>
+                            <span class="badge rounded-pill tint-cyan">P ${Math.round(m.protein)}</span>
+                            <span class="badge rounded-pill tint-amber">C ${Math.round(m.carbs)}</span>
+                            <span class="badge rounded-pill tint-violet">F ${Math.round(m.fat)}</span>
+                        </div>
+                        <div class="d-flex gap-1 flex-shrink-0">
+                            <button class="btn btn-sm btn-ghost" data-bs-toggle="collapse" data-bs-target="#meal-${m.id}" aria-label="Show foods"><i class="bi bi-list-ul"></i></button>
+                            <button class="btn btn-sm btn-ghost text-pink" data-delete="${m.id}" aria-label="Delete meal"><i class="bi bi-trash3"></i></button>
+                        </div>
+                    </div>
+                    <div class="collapse" id="meal-${m.id}">
+                        <div class="mt-2">
+                            ${m.items.map(it => `<div class="food-item"><span class="fi-emoji">${emoji(it.foodName)}</span>
+                                <div><div class="fi-name">${FJ.esc(it.foodName)}</div><div class="fi-sub">${it.quantity} ${FJ.esc(it.unit)} · ~${it.grams} g</div></div>
+                                <div class="fi-kcal">${FJ.fmt(it.calories)}<small>kcal</small></div></div>`).join("")}
+                            ${m.tips.map(t => `<div class="tip"><i class="bi bi-robot"></i><span>${FJ.esc(t)}</span></div>`).join("")}
+                        </div>
+                    </div>
+                </div>`).join("");
+        } catch (e) {
+            FJ.toast(e.message, "error");
+        }
+    }
+
+    $("diary").addEventListener("click", async e => {
+        const b = e.target.closest("[data-delete]");
+        if (!b) return;
+        if (!confirm("Delete this meal from your diary?")) return;
+        try {
+            await FJ.api(`/api/food/logs/${b.dataset.delete}?userId=${me.id}`, { method: "DELETE" });
+            FJ.toast("Meal deleted", "success");
+            loadDay();
+        } catch (err) {
+            FJ.toast(err.message, "error");
+        }
+    });
+
+    loadDay();
+</script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>New post · FitJanta</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="css/fitjanta.css" rel="stylesheet">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="FitJanta">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0A0D12">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="icon" href="img/logo-mark.svg" type="image/svg+xml">
+    <link rel="manifest" href="manifest.webmanifest">
+</head>
+<body>
+
+<main class="app-shell no-nav">
+
+    <header class="app-topbar">
+        <a href="feed.html" class="icon-btn" aria-label="Close"><i class="bi bi-x-lg"></i></a>
+        <h1 class="title flex-grow-1 text-center">New post</h1>
+        <button id="shareTop" class="btn btn-sm btn-grad px-3" disabled>Share</button>
+    </header>
+
+    <!-- Photo picker -->
+    <label class="upload-drop reveal d1" id="drop" for="photo">
+        <i class="bi bi-camera"></i>
+        <div class="fw-bold text-white">Tap to add a photo</div>
+        <div class="small">Take a picture or choose from your library</div>
+        <img id="preview" alt="" class="d-none">
+        <span class="btn btn-sm btn-ghost change-btn d-none" id="changeBtn"><i class="bi bi-arrow-repeat me-1"></i>Change</span>
+    </label>
+    <input type="file" id="photo" accept="image/*" class="d-none">
+
+    <!-- Caption -->
+    <section class="fj-card mt-3 reveal d2">
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <span id="meAvatar"></span>
+            <div class="fw-bold" id="meName"></div>
+        </div>
+        <textarea id="caption" class="form-control border-0 px-0" style="background:transparent;box-shadow:none" maxlength="2200"
+                  placeholder="Write a caption… Use #hashtags like #morningrun #FitJanta"></textarea>
+        <div class="d-flex justify-content-between align-items-center mt-2">
+            <div class="chip-scroll m-0 p-0" id="tags"></div>
+        </div>
+        <div class="text-end small text-muted mt-2"><span id="count">0</span>/2200</div>
+    </section>
+
+    <!-- Live preview of hashtags -->
+    <section class="fj-card flat tight mt-3 d-none reveal" id="captionPreviewBox">
+        <div class="small-caps mb-1">Caption preview</div>
+        <div class="small" id="captionPreview" style="white-space:pre-wrap"></div>
+    </section>
+
+    <div class="progress mt-3 d-none" id="uploadProgress" style="height:8px">
+        <div class="progress-bar bar-grad progress-bar-striped progress-bar-animated" style="width:100%"></div>
+    </div>
+
+    <button id="shareBtn" class="btn btn-grad w-100 py-3 mt-3" disabled>
+        <i class="bi bi-send-fill me-1"></i> Share to feed
+    </button>
+    <p class="text-center small text-muted mt-2 mb-0"><i class="bi bi-shield-check me-1"></i>Posts are visible to everyone on FitJanta.</p>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/fitjanta.js"></script>
+<script>
+    const me = FJ.requireUser();
+    const $ = id => document.getElementById(id);
+    $("meAvatar").innerHTML = FJ.avatarOf(me, 34);
+    $("meName").textContent = me.name;
+
+    const QUICK_TAGS = ["#FitJanta", "#WorkoutDone", "#HealthyEating", "#MorningRun", "#NoExcuses", "#GymLife", "#YogaVibes", "#DesiFit"];
+    $("tags").innerHTML = QUICK_TAGS.map(t => `<button type="button" class="chip" data-tag="${t}">${t}</button>`).join("");
+
+    let photoBlob = null;
+
+    $("photo").addEventListener("change", async () => {
+        const file = $("photo").files[0];
+        if (!file) return;
+        try {
+            photoBlob = await FJ.compressImage(file);
+            const url = URL.createObjectURL(photoBlob);
+            $("preview").src = url;
+            $("preview").classList.remove("d-none");
+            $("changeBtn").classList.remove("d-none");
+            FJ.haptic();
+            updateState();
+        } catch (e) {
+            photoBlob = null;
+            FJ.toast(e.message, "error");
+        }
+    });
+
+    $("tags").addEventListener("click", e => {
+        const b = e.target.closest("[data-tag]");
+        if (!b) return;
+        const c = $("caption");
+        if (!c.value.includes(b.dataset.tag)) {
+            c.value = (c.value.trim() + " " + b.dataset.tag).trim();
+            b.classList.add("active");
+            c.dispatchEvent(new Event("input"));
+        }
+    });
+
+    $("caption").addEventListener("input", () => {
+        const v = $("caption").value;
+        $("count").textContent = v.length;
+        const box = $("captionPreviewBox");
+        box.classList.toggle("d-none", !v.includes("#"));
+        $("captionPreview").innerHTML = FJ.formatCaption(v);
+        // Auto-grow textarea
+        $("caption").style.height = "auto";
+        $("caption").style.height = Math.max(110, $("caption").scrollHeight) + "px";
+    });
+
+    function updateState() {
+        $("shareBtn").disabled = !photoBlob;
+        $("shareTop").disabled = !photoBlob;
+    }
+
+    async function share() {
+        if (!photoBlob) {
+            FJ.toast("Add a photo first", "error");
+            return;
+        }
+        const form = new FormData();
+        form.append("userId", me.id);
+        form.append("caption", $("caption").value.trim());
+        form.append("image", photoBlob, "photo.jpg");
+
+        const btn = $("shareBtn");
+        FJ.setLoading(btn, true, "Sharing");
+        $("shareTop").disabled = true;
+        $("uploadProgress").classList.remove("d-none");
+        try {
+            const post = await FJ.api("/api/posts", { method: "POST", form });
+            FJ.celebrate("Posted!", "Your crew can see it now 📸");
+            setTimeout(() => window.location.href = "feed.html#post-" + post.id, 1300);
+        } catch (e) {
+            FJ.toast(e.message, "error");
+            FJ.setLoading(btn, false);
+            updateState();
+            $("uploadProgress").classList.add("d-none");
+        }
+    }
+
+    $("shareBtn").addEventListener("click", share);
+    $("shareTop").addEventListener("click", share);
+</script>
+</body>
+</html>

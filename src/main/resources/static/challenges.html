@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Challenges · FitJanta</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="css/fitjanta.css" rel="stylesheet">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="FitJanta">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0A0D12">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="icon" href="img/logo-mark.svg" type="image/svg+xml">
+    <link rel="manifest" href="manifest.webmanifest">
+</head>
+<body>
+
+<main class="app-shell">
+
+    <header class="app-topbar">
+        <a href="home.html" class="icon-btn" aria-label="Back"><i class="bi bi-chevron-left"></i></a>
+        <h1 class="title flex-grow-1">Challenges</h1>
+        <a href="leaderboard.html" class="icon-btn" aria-label="Leaderboard"><i class="bi bi-trophy"></i></a>
+    </header>
+
+    <section class="fj-card fj-card-grad reveal d1">
+        <div class="d-flex align-items-center gap-3">
+            <div class="ring ring-sm" id="ring" style="--color:#fff;--value:0">
+                <div class="ring-inner"><div class="ring-value" id="pct">0%</div></div>
+            </div>
+            <div class="flex-grow-1">
+                <div class="fw-800 fs-5"><span id="doneCount">0</span> of <span id="totalCount">0</span> completed</div>
+                <div class="small" style="opacity:.85"><span id="xpAvail">0</span> XP still up for grabs</div>
+            </div>
+        </div>
+    </section>
+
+    <div class="chip-scroll mt-3 reveal d2" id="filters">
+        <button class="chip active" data-filter="all">All</button>
+        <button class="chip" data-filter="open">Open</button>
+        <button class="chip" data-filter="done">Completed</button>
+    </div>
+
+    <section id="list" class="mt-3"><div class="skeleton" style="height:110px"></div></section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/fitjanta.js"></script>
+<script>
+    const me = FJ.requireUser();
+    FJ.nav("");
+    const $ = id => document.getElementById(id);
+
+    let challenges = [];
+    let done = new Set();
+    let filter = "all";
+
+    function unitFor(c) {
+        if (c.activityType === "Nutrition") return "score";
+        if (c.target >= 1000) return "steps";
+        return ["Walking", "Running", "Cycling"].includes(c.activityType) ? "km" : "min";
+    }
+
+    function render() {
+        const total = challenges.length;
+        const completed = challenges.filter(c => done.has(c.id)).length;
+        $("doneCount").textContent = completed;
+        $("totalCount").textContent = total;
+        $("xpAvail").textContent = FJ.fmt(challenges.filter(c => !done.has(c.id)).reduce((s, c) => s + c.xp, 0));
+        const pct = total ? Math.round(completed * 100 / total) : 0;
+        $("pct").textContent = pct + "%";
+        requestAnimationFrame(() => $("ring").style.setProperty("--value", pct));
+
+        const visible = challenges.filter(c => filter === "all" || (filter === "done") === done.has(c.id));
+        $("list").innerHTML = visible.length ? visible.map((c, i) => {
+            const m = FJ.activityMeta(c.activityType);
+            const isDone = done.has(c.id);
+            return `<div class="fj-card tight reveal d${Math.min(i + 1, 6)} ${isDone ? "opacity-75" : ""}">
+                <div class="d-flex gap-3">
+                    <span class="lt-icon ${m.tint} rounded-4 d-inline-flex align-items-center justify-content-center flex-shrink-0" style="width:52px;height:52px;font-size:1.4rem"><i class="bi ${m.icon}"></i></span>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="fw-800">${FJ.esc(c.title)}</div>
+                            ${isDone ? '<i class="bi bi-patch-check-fill text-lime"></i>' : ""}
+                        </div>
+                        <div class="small text-muted">${FJ.esc(c.description)}</div>
+                        <div class="d-flex gap-2 mt-2">
+                            <span class="badge rounded-pill tint-amber"><i class="bi bi-lightning-charge-fill"></i> ${c.xp} XP</span>
+                            <span class="badge rounded-pill tint-cyan">${FJ.esc(c.activityType)} · ${FJ.fmt(c.target)} ${unitFor(c)}</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn ${isDone ? "btn-ghost" : "btn-grad"} w-100 mt-3 py-2" data-complete="${c.id}" ${isDone ? "disabled" : ""}>
+                    ${isDone ? '<i class="bi bi-check2-all me-1"></i>Completed' : '<i class="bi bi-flag-fill me-1"></i>Mark as completed'}
+                </button>
+            </div>`;
+        }).join("") : `<div class="fj-card flat empty-state"><i class="bi bi-flag"></i><div class="fw-bold text-white">Nothing here</div></div>`;
+    }
+
+    async function load() {
+        try {
+            const [list, completed] = await Promise.all([
+                FJ.api("/api/challenges"),
+                FJ.api(`/api/challenges/completed/${me.id}`)
+            ]);
+            challenges = list;
+            done = new Set(completed);
+            render();
+        } catch (e) { FJ.toast(e.message, "error"); }
+    }
+
+    $("filters").addEventListener("click", e => {
+        const b = e.target.closest("[data-filter]");
+        if (!b) return;
+        filter = b.dataset.filter;
+        document.querySelectorAll("#filters .chip").forEach(c => c.classList.toggle("active", c === b));
+        render();
+    });
+
+    $("list").addEventListener("click", async e => {
+        const b = e.target.closest("[data-complete]");
+        if (!b) return;
+        FJ.setLoading(b, true, "Claiming XP");
+        try {
+            const r = await FJ.api(`/api/challenges/${b.dataset.complete}/complete/${me.id}`, { method: "POST" });
+            FJ.setUser(r.user);
+            done.add(Number(b.dataset.complete));
+            FJ.celebrate(`+${r.xpEarned} XP`, r.levelUp ? `Level up! Level ${r.user.level} 🚀` : "Challenge completed 🏁");
+            render();
+        } catch (err) {
+            FJ.toast(err.message, "error");
+            FJ.setLoading(b, false);
+        }
+    });
+
+    load();
+</script>
+</body>
+</html>
