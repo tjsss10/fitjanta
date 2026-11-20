@@ -17,33 +17,50 @@ $localUser = (($props | Where-Object { $_ -match '^spring\.datasource\.username=
 $localPass = (($props | Where-Object { $_ -match '^spring\.datasource\.password=' }) -replace '^[^=]+=', '').Trim()
 
 Write-Host ""
-Write-Host "  FITJANTA  |  copy local MySQL -> Aiven cloud MySQL" -ForegroundColor White -BackgroundColor DarkMagenta
-Write-Host "  Find these on Aiven: your MySQL service > Overview > Connection information" -ForegroundColor Gray
+Write-Host "  FITJANTA  |  copy local MySQL -> cloud MySQL (TiDB Cloud / Aiven)" -ForegroundColor White -BackgroundColor DarkMagenta
+Write-Host "  TiDB Cloud: your cluster > Connect > 'Connection String' (choose General / MySQL CLI)" -ForegroundColor Gray
+Write-Host "  Easiest: copy the connection URL (mysql://USER:PASSWORD@HOST:PORT/...) and paste it here." -ForegroundColor Gray
 Write-Host ""
-$cloudHost = (Read-Host "  Aiven Host (e.g. mysql-xxxx.aivencloud.com)").Trim()
-$cloudPort = (Read-Host "  Aiven Port (e.g. 12345)").Trim()
-$cloudUser = (Read-Host "  Aiven User [avnadmin]").Trim()
-if (-not $cloudUser) { $cloudUser = "avnadmin" }
-$secure = Read-Host "  Aiven Password (hidden)" -AsSecureString
-$cloudPass = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure))
+$secureUri = Read-Host "  Paste the connection URL (hidden), or press Enter to type details one by one" -AsSecureString
+$uri = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureUri)).Trim()
 
-$confirm = Read-Host "  This replaces the 'fitjanta' tables on Aiven with your local data. Type YES to continue"
+$m = [regex]::Match($uri, '^mysql://([^:]+):(.+)@([^:/@]+):(\d+)')
+if ($m.Success) {
+    $cloudUser = [Uri]::UnescapeDataString($m.Groups[1].Value)
+    $cloudPass = [Uri]::UnescapeDataString($m.Groups[2].Value)
+    $cloudHost = $m.Groups[3].Value
+    $cloudPort = $m.Groups[4].Value
+    Write-Host "  Read connection URL: host $cloudHost, port $cloudPort, user $cloudUser" -ForegroundColor Green
+}
+else {
+    $cloudHost = (Read-Host "  Host (e.g. gateway01.ap-southeast-1.prod.aws.tidbcloud.com)").Trim()
+    $cloudPort = (Read-Host "  Port (TiDB: 4000)").Trim()
+    $cloudUser = (Read-Host "  User (TiDB: xxxx.root)").Trim()
+    if (-not $cloudUser) { $cloudUser = "avnadmin" }
+    $secure = Read-Host "  Password (hidden)" -AsSecureString
+    $cloudPass = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure))
+}
+$uri = $null
+
+$confirm = Read-Host "  This replaces the 'fitjanta' tables in the cloud with your local data. Type YES to continue"
 if ($confirm -ne "YES") { Write-Host "  Cancelled." -ForegroundColor Yellow; exit 0 }
 
 try {
     Write-Host "`n  1/3  Exporting local database..." -ForegroundColor Cyan
     $env:MYSQL_PWD = $localPass
+    # --skip-add-locks: TiDB Cloud doesn't support LOCK TABLES during import
     & "$bin\mysqldump.exe" -u $localUser -h 127.0.0.1 --single-transaction --set-gtid-purged=OFF --no-tablespaces `
+        --skip-add-locks --skip-lock-tables `
         --max-allowed-packet=256M --default-character-set=utf8mb4 --result-file="$dump" fitjanta
     if ($LASTEXITCODE -ne 0) { throw "Export failed." }
     Write-Host ("       {0:N1} MB exported" -f ((Get-Item $dump).Length / 1MB))
 
-    Write-Host "  2/3  Creating database on Aiven..." -ForegroundColor Cyan
+    Write-Host "  2/3  Creating database in the cloud..." -ForegroundColor Cyan
     $env:MYSQL_PWD = $cloudPass
     & "$bin\mysql.exe" -u $cloudUser -h $cloudHost -P $cloudPort --ssl-mode=REQUIRED -e "CREATE DATABASE IF NOT EXISTS fitjanta CHARACTER SET utf8mb4;"
-    if ($LASTEXITCODE -ne 0) { throw "Could not connect to Aiven. Check host, port, user and password." }
+    if ($LASTEXITCODE -ne 0) { throw "Could not connect to the cloud database. Check host, port, user and password." }
 
-    Write-Host "  3/3  Importing into Aiven (this can take a minute)..." -ForegroundColor Cyan
+    Write-Host "  3/3  Importing into the cloud (this can take a minute)..." -ForegroundColor Cyan
     & "$bin\mysql.exe" -u $cloudUser -h $cloudHost -P $cloudPort --ssl-mode=REQUIRED --max-allowed-packet=256M `
         --default-character-set=utf8mb4 fitjanta -e "source $($dump -replace '\\','/')"
     if ($LASTEXITCODE -ne 0) { throw "Import failed." }
@@ -55,7 +72,7 @@ try {
     Write-Host "`n  Values for Render (Environment):" -ForegroundColor Yellow
     Write-Host "     DB_URL      = jdbc:mysql://${cloudHost}:${cloudPort}/fitjanta?sslMode=REQUIRED"
     Write-Host "     DB_USER     = $cloudUser"
-    Write-Host "     DB_PASSWORD = (your Aiven password)"
+    Write-Host "     DB_PASSWORD = (your cloud database password)"
 }
 catch {
     Write-Host "`n  ERROR: $($_.Exception.Message)" -ForegroundColor Red

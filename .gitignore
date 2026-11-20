@@ -6,11 +6,13 @@ build/
 !**/src/test/**/build/
 
 ### Local-only (secrets, data, tools) ###
-config/
-uploads/
-tools/
-data/
-old-ui-backup/
+# Leading "/" = only the folder at the project root
+# (so src/main/java/com/fitjanta/config/ is NOT ignored)
+/config/
+/uploads/
+/tools/
+/data/
+/old-ui-backup/
 *.log
 
 ### STS ###
