@@ -120,13 +120,15 @@
             const url = info.urls[0];
             document.getElementById("url").textContent = url;
             if (info.publicUrl) {
-                document.querySelector(".tagline").textContent = "PUBLIC LINK · WORKS ON ANY NETWORK";
+                document.querySelector(".tagline").textContent = info.cloud ? "PERMANENT LINK · WORKS EVERYWHERE" : "PUBLIC LINK · WORKS ON ANY NETWORK";
                 document.querySelector(".steps").innerHTML =
                     "1. Open the <b>Camera</b> app on any phone and point it at the QR code.<br>" +
                     "2. Tap the link that appears. FitJanta opens in Safari (Wi-Fi or mobile data).<br>" +
                     (info.publicUrl.includes("pinggy") ? "&nbsp;&nbsp;&nbsp;If a <b>Caution</b> page appears first, tap <b>Continue</b>.<br>" : "") +
                     "3. Tap <b>Share → Add to Home Screen</b> to get the app icon.<br>" +
-                    "<span style='color:#8C96A8'>The link changes each time the public link is restarted.</span>";
+                    (info.cloud
+                        ? "<span style='color:#C5F82A'>Permanent link · online 24/7, even when the laptop is off.</span>"
+                        : "<span style='color:#8C96A8'>The link changes each time the public link is restarted.</span>");
             }
 
             if (typeof qrcode === "function") {
